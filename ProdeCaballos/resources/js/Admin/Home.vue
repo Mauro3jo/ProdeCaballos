@@ -3,28 +3,29 @@
     <h1>Bienvenido, {{ userName }}</h1>
     <p>Este es tu panel de administración.</p>
 
-    <div class="stats">
-      <div class="card">
-        <h2>Carreras</h2>
-        <p>Próximamente disponibles</p>
-      </div>
-      <div class="card">
-        <h2>Usuarios</h2>
-        <p>Gestión de participantes</p>
-      </div>
-      <div class="card">
-        <h2>Resultados</h2>
-        <p>Revisión de resultados</p>
-      </div>
+    <div class="actions">
+      <button class="btn" @click="showCarreras = true">Gestionar Carreras</button>
+      <button class="btn" @click="showCaballos = true">Gestionar Caballos</button>
+      <button class="btn" @click="showFormularios = true">Gestionar Formularios</button>
     </div>
+
+    <!-- Modales: solo se montan cuando hace falta -->
+    <GestionCarrerasModal v-if="showCarreras" @close="showCarreras = false" />
+    <GestionCaballosModal v-if="showCaballos" @close="showCaballos = false" />
+    <GestionFormulariosModal v-if="showFormularios" @close="showFormularios = false" />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref } from 'vue';
+import GestionCarrerasModal from './GestionCarrerasModal.vue';
+import GestionCaballosModal from './GestionCaballosModal.vue';
+import GestionFormulariosModal from './GestionFormulariosModal.vue'; // Importado
 
-// Esto es solo una demo. En el futuro podés pasar el nombre real desde Blade.
-const userName = ref('Administrador')
+const userName = ref('Administrador');
+const showCarreras = ref(false);
+const showCaballos = ref(false);
+const showFormularios = ref(false); // Estado para modal
 </script>
 
 <style scoped>
@@ -37,29 +38,24 @@ const userName = ref('Administrador')
   color: #222;
 }
 
-.stats {
-  margin-top: 40px;
+.actions {
+  margin-top: 32px;
   display: flex;
   justify-content: center;
   gap: 24px;
-  flex-wrap: wrap;
 }
 
-.card {
-  background: white;
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  width: 240px;
-  transition: transform 0.3s;
+.btn {
+  background: #3b82f6;
+  color: white;
+  border-radius: 0.5em;
+  padding: 0.7em 1.8em;
+  font-size: 1.1em;
+  transition: background 0.2s;
+  cursor: pointer;
 }
 
-.card:hover {
-  transform: scale(1.05);
-}
-
-.card h2 {
-  margin-bottom: 8px;
-  font-size: 20px;
+.btn:hover {
+  background: #2563eb;
 }
 </style>

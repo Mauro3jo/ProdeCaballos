@@ -13,8 +13,7 @@ class CreateCarrerasTable extends Migration
             $table->string('nombre');
             $table->text('descripcion')->nullable();
             $table->dateTime('fecha')->nullable();
-            $table->boolean('obligatoria')->default(false);
-            $table->boolean('suspendida')->default(false);
+            $table->string('estado'); // SOLO estado, sin default ni enum
             $table->timestamps();
         });
     }

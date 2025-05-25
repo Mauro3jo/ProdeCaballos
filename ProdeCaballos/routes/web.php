@@ -2,7 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\AdminController; // ✅ CORREGIDO
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CaballoController;
+use App\Http\Controllers\CarreraController;
+use App\Http\Controllers\ProdeCaballoController;
+use App\Http\Controllers\FormularioController;
 
 Route::middleware('web')->group(function () {
     // HOME principal
@@ -12,13 +16,21 @@ Route::middleware('web')->group(function () {
 
     // LOGIN FORM
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login.form');
-
-    // LOGIN POST (API SEPARADA)
     Route::post('/auth/login', [LoginController::class, 'login'])->name('login.process');
-
-    // LOGOUT
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     // ADMIN (requiere sesión activa)
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.dashboard');
+
+    // Endpoints para Vue/JS frontend (sin prefijo)
+    Route::apiResource('caballos', CaballoController::class);
+    Route::apiResource('carreras', CarreraController::class);
+
+    // Ruta para crear ProdeCaballo
+Route::apiResource('prode-caballos', ProdeCaballoController::class);
+// Para la parte pública (sin login)
+Route::get('/prodes', [\App\Http\Controllers\FormularioController::class, 'prodes']);
+Route::get('/prodes/{id}', [\App\Http\Controllers\FormularioController::class, 'prodeDetalle']);
+Route::post('/formularios', [\App\Http\Controllers\FormularioController::class, 'store']);
+
 });

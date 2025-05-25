@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Caballo extends Model
 {
-    protected $fillable = ['nombre'];
+    protected $fillable = ['nombre', 'descripcion'];
 
     public function carreras()
     {
@@ -15,6 +15,11 @@ class Caballo extends Model
 
     public function pronosticos()
     {
-        return $this->hasMany(Pronostico::class);
+        return $this->hasMany(Pronostico::class, 'caballo_id');
+    }
+
+    public function resultados()
+    {
+        return $this->hasMany(Resultado::class, 'caballo_id');
     }
 }

@@ -7,16 +7,20 @@ use Illuminate\Database\Eloquent\Model;
 class Formulario extends Model
 {
     protected $fillable = [
-        'nombre', 'dni', 'celular', 'forma_pago'
+        'prode_caballo_id',
+        'nombre',
+        'dni',
+        'celular',
+        'forma_pago'
     ];
+
+    public function prode()
+    {
+        return $this->belongsTo(ProdeCaballo::class, 'prode_caballo_id');
+    }
 
     public function pronosticos()
     {
-        return $this->hasMany(Pronostico::class);
+        return $this->hasMany(Pronostico::class, 'formulario_id');
     }
-    public function configuracion()
-{
-    return $this->hasOne(ConfiguracionProde::class);
-}
-
 }

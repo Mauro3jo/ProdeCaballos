@@ -12,18 +12,22 @@ class AdminController extends Controller
     {
         $user = Auth::user();
 
+        // Si no hay usuario, redirige al home
+        if (!$user) {
+            return redirect('/');
+        }
+
+        // Si no hay token o expiró, también al home
         if (
-            !$user->api_token ||
-            !$user->token_expiration ||
+            empty($user->api_token) ||
+            empty($user->token_expiration) ||
             $user->token_expiration < Carbon::now()
         ) {
             Auth::logout();
             session()->invalidate();
             session()->regenerateToken();
 
-            return redirect('/login')->withErrors([
-                'token' => 'Tu sesión ha expirado. Iniciá sesión nuevamente.',
-            ]);
+            return redirect('/');
         }
 
         return view('admin.home', ['user' => $user]);

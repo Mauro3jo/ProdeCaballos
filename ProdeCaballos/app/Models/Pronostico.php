@@ -7,21 +7,21 @@ use Illuminate\Database\Eloquent\Model;
 class Pronostico extends Model
 {
     protected $fillable = [
-        'formulario_id', 'carrera_id', 'caballo_id', 'tipo'
+        'formulario_id', 'carrera_id', 'caballo_id', 'es_suplente'
     ];
 
     public function formulario()
     {
-        return $this->belongsTo(Formulario::class);
+        return $this->belongsTo(Formulario::class, 'formulario_id');
     }
 
     public function carrera()
     {
-        return $this->belongsTo(Carrera::class);
+        return $this->belongsTo(Carrera::class, 'carrera_id');
     }
 
     public function caballo()
     {
-        return $this->belongsTo(Caballo::class);
+        return $this->belongsTo(Caballo::class, 'caballo_id');
     }
 }

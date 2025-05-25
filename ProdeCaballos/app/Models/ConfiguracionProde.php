@@ -9,13 +9,14 @@ class ConfiguracionProde extends Model
     protected $table = 'configuracion_prode';
 
     protected $fillable = [
-        'carreras_obligatorias',
-        'carreras_opcionales',
-        'carreras_suplentes'
+        'prode_caballo_id',
+        'cantidad_obligatorias',
+        'cantidad_opcionales',
+        'cantidad_suplentes'
     ];
-    public function formulario()
-{
-    return $this->belongsTo(Formulario::class);
-}
 
+    public function prode()
+    {
+        return $this->belongsTo(ProdeCaballo::class, 'prode_caballo_id');
+    }
 }
