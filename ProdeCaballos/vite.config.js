@@ -12,7 +12,6 @@ export default defineConfig({
                 'resources/js/admin.js',     // ← entrada del admin (si lo usás)
                 'resources/js/home.js',      // ← entrada para Home.vue si aplica
                 'resources/js/homeusuarios.js',  // ← entrada para HomeUsuarios.vue
-
             ],
             refresh: true,
         }),

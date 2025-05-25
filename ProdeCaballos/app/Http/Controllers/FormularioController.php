@@ -9,29 +9,121 @@ use Illuminate\Support\Facades\DB;
 
 class FormularioController extends Controller
 {
-    // 1. Trae todos los prodes con config, carreras y caballos por carrera
-    public function prodes()
-    {
-        $prodes = ProdeCaballo::with([
-            'configuracion',
-            'carreras.caballos'
-        ])->get();
+    // 1. Listado de prodes con configuraciones, carreras y caballos
+ // FormularioController.php
 
-        return response()->json($prodes);
+public function index()
+{
+    $prodes = \App\Models\ProdeCaballo::all()->map(function($prode) {
+        return [
+            'id' => $prode->id,
+            'nombre' => $prode->nombre,
+            'precio' => $prode->precio,
+            'fechafin' => $prode->fechafin,
+            // Si siempre hay una sola configuración, devolvemos solo la primera (o null si no hay)
+            'configuracion' => $prode->configuraciones->first(),
+            'carreras' => $prode->carreras->map(function($carrera) use ($prode) {
+                // Buscamos el campo obligatoria en la tabla pivote
+                $pivot = $carrera->pivot ?? null;
+                return [
+                    'id' => $carrera->id,
+                    'nombre' => $carrera->nombre,
+                    'obligatoria' => $pivot ? (bool)$pivot->obligatoria : false,
+                    // Caballos asociados a la carrera
+                    'caballos' => $carrera->caballos->map(function($caballo) {
+                        return [
+                            'id' => $caballo->id,
+                            'nombre' => $caballo->nombre,
+                        ];
+                    }),
+                ];
+            }),
+        ];
+    });
+
+    return response()->json($prodes);
+}
+
+public function detalleProde(Request $request)
+{
+    $id = $request->input('id'); // obtener id del POST
+
+    if (!$id) {
+        return response()->json(['error' => 'ID requerido'], 400);
     }
 
-    // 2. Detalle de un prode por id (con carreras y caballos)
-    public function prodeDetalle($id)
-    {
-        $prode = ProdeCaballo::with([
-            'configuracion',
-            'carreras.caballos'
-        ])->findOrFail($id);
+    $prode = ProdeCaballo::find($id);
 
-        return response()->json($prode);
+    if (!$prode) {
+        return response()->json(['error' => 'Prode no encontrado'], 404);
     }
 
-    // 3. Guarda formulario + pronósticos (datos personales + array de pronósticos)
+    $data = [
+        'id' => $prode->id,
+        'nombre' => $prode->nombre,
+        'precio' => $prode->precio,
+        'fechafin' => $prode->fechafin,
+        'configuracion' => $prode->configuraciones->first(),
+        'carreras' => $prode->carreras->map(function($carrera) {
+            $pivot = $carrera->pivot ?? null;
+            return [
+                'id' => $carrera->id,
+                'nombre' => $carrera->nombre,
+                'obligatoria' => $pivot ? (bool)$pivot->obligatoria : false,
+                'caballos' => $carrera->caballos->map(function($caballo) {
+                    return [
+                        'id' => $caballo->id,
+                        'nombre' => $caballo->nombre,
+                    ];
+                }),
+            ];
+        }),
+    ];
+
+    return response()->json($data);
+}
+
+    // 2. Detalle de un solo prode (por ID) con todo incluido
+public function show(Request $request)
+{
+    $id = $request->input('id'); // Obtener ID desde el cuerpo POST
+
+    if (!$id) {
+        return response()->json(['error' => 'ID requerido'], 400);
+    }
+
+    $prode = ProdeCaballo::find($id);
+    if (!$prode) {
+        return response()->json(['error' => 'Prode no encontrado'], 404);
+    }
+
+    $data = [
+        'id' => $prode->id,
+        'nombre' => $prode->nombre,
+        'precio' => $prode->precio,
+        'fechafin' => $prode->fechafin,
+        'configuracion' => $prode->configuraciones->first(),
+        'carreras' => $prode->carreras->map(function($carrera) {
+            $pivot = $carrera->pivot ?? null;
+            return [
+                'id' => $carrera->id,
+                'nombre' => $carrera->nombre,
+                'obligatoria' => $pivot ? (bool)$pivot->obligatoria : false,
+                'caballos' => $carrera->caballos->map(function($caballo) {
+                    return [
+                        'id' => $caballo->id,
+                        'nombre' => $caballo->nombre,
+                    ];
+                }),
+            ];
+        }),
+    ];
+
+    return response()->json($data);
+}
+
+
+    // 3. Guardar formulario + pronósticos
     public function store(Request $request)
     {
         $validated = $request->validate([

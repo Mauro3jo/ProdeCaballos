@@ -29,8 +29,9 @@ Route::middleware('web')->group(function () {
     // Ruta para crear ProdeCaballo
 Route::apiResource('prode-caballos', ProdeCaballoController::class);
 // Para la parte pública (sin login)
-Route::get('/prodes', [\App\Http\Controllers\FormularioController::class, 'prodes']);
-Route::get('/prodes/{id}', [\App\Http\Controllers\FormularioController::class, 'prodeDetalle']);
-Route::post('/formularios', [\App\Http\Controllers\FormularioController::class, 'store']);
+Route::apiResource('formularios', FormularioController::class); // <-- Así, como los otros
+    Route::post('/formularios/detalle', [FormularioController::class, 'detalleProde']);
+
+
 
 });
