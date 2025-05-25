@@ -1,16 +1,23 @@
 <template>
   <div class="login-container">
-    <h2>Iniciar sesión</h2>
+    <h2>Iniciar Sesión</h2>
+
     <form @submit.prevent="handleLogin">
-      <label>Email:</label>
-      <input v-model="email" type="email" required />
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input v-model="email" type="email" id="email" required />
+      </div>
 
-      <label>Contraseña:</label>
-      <input v-model="password" type="password" required />
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input v-model="password" type="password" id="password" required />
+      </div>
 
-      <button type="submit">Ingresar</button>
+      <button type="submit" :disabled="loading">
+        {{ loading ? 'Ingresando...' : 'Ingresar' }}
+      </button>
 
-      <div v-if="error" class="error">{{ error }}</div>
+      <p v-if="error" class="error-message">{{ error }}</p>
     </form>
   </div>
 </template>
@@ -21,20 +28,28 @@ import axios from 'axios'
 
 const email = ref('')
 const password = ref('')
+const loading = ref(false)
 const error = ref(null)
 
 const handleLogin = async () => {
   error.value = null
+  loading.value = true
 
   try {
-    await axios.post('/login', {
+    const response = await axios.post('/auth/login', {
       email: email.value,
-      password: password.value
+      password: password.value,
     })
 
-    window.location.href = '/admin'
+    window.location.href = response.data.redirect || '/admin'
+
   } catch (err) {
-    error.value = 'Credenciales incorrectas.'
+    if (err.response?.status === 422) {
+      error.value = err.response.data.errors.email?.[0] ?? 'Credenciales inválidas.'
+    } else {
+      error.value = 'Error del servidor. Intenta de nuevo.'
+    }
+    loading.value = false
   }
 }
 </script>
@@ -43,25 +58,53 @@ const handleLogin = async () => {
 .login-container {
   max-width: 400px;
   margin: 80px auto;
-  padding: 20px;
+  padding: 30px;
   border: 1px solid #ccc;
-  border-radius: 8px;
+  border-radius: 10px;
+  background-color: #f9f9f9;
 }
-input {
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #222;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+label {
+  font-weight: bold;
   display: block;
+  margin-bottom: 6px;
+}
+
+input {
   width: 100%;
   padding: 8px;
-  margin-bottom: 12px;
+  box-sizing: border-box;
 }
+
 button {
-  padding: 10px;
   width: 100%;
-  background: black;
+  padding: 10px;
+  background-color: #111;
   color: white;
   border: none;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 4px;
 }
-.error {
+
+button:disabled {
+  background-color: #444;
+  cursor: not-allowed;
+}
+
+.error-message {
   color: red;
-  margin-top: 10px;
+  margin-top: 12px;
+  text-align: center;
 }
 </style>

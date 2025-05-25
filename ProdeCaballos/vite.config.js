@@ -8,7 +8,9 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
-                'resources/js/login.js', // ← agregalo acá
+                'resources/js/login.js',     // ← entrada del login
+                'resources/js/admin.js',     // ← entrada del admin (si lo usás)
+                'resources/js/home.js',      // ← entrada para Home.vue si aplica
             ],
             refresh: true,
         }),

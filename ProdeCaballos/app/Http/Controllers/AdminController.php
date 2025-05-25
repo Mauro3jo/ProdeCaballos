@@ -1,31 +1,31 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace App\Http\Controllers;
 
-use Closure;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 
-class ValidToken
+class AdminController extends Controller
 {
-    public function handle($request, Closure $next)
+    public function index()
     {
         $user = Auth::user();
 
         if (
-            !$user ||
             !$user->api_token ||
             !$user->token_expiration ||
             $user->token_expiration < Carbon::now()
         ) {
             Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+            session()->invalidate();
+            session()->regenerateToken();
+
             return redirect('/login')->withErrors([
-                'token' => 'Tu sesión ha expirado. Iniciá sesión nuevamente.'
+                'token' => 'Tu sesión ha expirado. Iniciá sesión nuevamente.',
             ]);
         }
 
-        return $next($request);
+        return view('admin.home', ['user' => $user]);
     }
 }
