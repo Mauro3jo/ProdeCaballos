@@ -31,6 +31,8 @@ Route::apiResource('prode-caballos', ProdeCaballoController::class);
 // Para la parte pública (sin login)
 Route::apiResource('formularios', FormularioController::class); // <-- Así, como los otros
     Route::post('/formularios/detalle', [FormularioController::class, 'detalleProde']);
+Route::post('/admin/prodes/listar', [AdminController::class, 'listarProdes']);
+Route::post('/admin/formularios/listar', [AdminController::class, 'listarFormulariosConDetalle']);
 
 
 
