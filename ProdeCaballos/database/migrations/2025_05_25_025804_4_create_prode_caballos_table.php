@@ -4,16 +4,19 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
-    public function up(): void {
-        Schema::create('caballos', function (Blueprint $table) {
+class CreateProdeCaballosTable extends Migration
+{
+    public function up()
+    {
+        Schema::create('prode_caballos', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
             $table->timestamps();
         });
     }
 
-    public function down(): void {
-        Schema::dropIfExists('caballos');
+    public function down()
+    {
+        Schema::dropIfExists('prode_caballos');
     }
-};
+}

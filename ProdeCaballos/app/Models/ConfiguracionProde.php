@@ -13,4 +13,9 @@ class ConfiguracionProde extends Model
         'carreras_opcionales',
         'carreras_suplentes'
     ];
+    public function formulario()
+{
+    return $this->belongsTo(Formulario::class);
+}
+
 }

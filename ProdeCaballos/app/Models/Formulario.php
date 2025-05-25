@@ -14,4 +14,9 @@ class Formulario extends Model
     {
         return $this->hasMany(Pronostico::class);
     }
+    public function configuracion()
+{
+    return $this->hasOne(ConfiguracionProde::class);
+}
+
 }
