@@ -1,4 +1,3 @@
 import { createApp } from 'vue';
-import HomeUsuarios from './usuario/HomeUsuarios.vue';
-
-createApp(HomeUsuarios).mount('#app');
+import AppUsuarios from './usuario/AppUsuarios.vue';
+createApp(AppUsuarios).mount('#app');
