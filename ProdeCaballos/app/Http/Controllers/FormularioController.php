@@ -137,7 +137,6 @@ public function show(Request $request)
             'pronosticos.*.caballo_id' => 'required|exists:caballos,id',
             'pronosticos.*.es_suplente' => 'boolean'
         ]);
-
         DB::beginTransaction();
         try {
             $formulario = Formulario::create([
