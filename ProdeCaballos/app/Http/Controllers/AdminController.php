@@ -41,36 +41,52 @@ class AdminController extends Controller
     }
 
     // Método modificado para filtrar por prode_caballo_id
-    public function listarFormulariosConDetalle(Request $request)
-    {
-        $prodeId = $request->input('prode_caballo_id');
-        if (!$prodeId) {
-            return response()->json(['error' => 'ID de Prode requerido'], 400);
-        }
-
-        $formularios = Formulario::with(['pronosticos.carrera', 'pronosticos.caballo'])
-            ->where('prode_caballo_id', $prodeId)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        $data = $formularios->map(function ($form) {
-            return [
-                'id' => $form->id,
-                'nombre' => $form->nombre,
-                'dni' => $form->dni,
-                'celular' => $form->celular,
-                'forma_pago' => $form->forma_pago,
-                'created_at' => $form->created_at->format('Y-m-d H:i:s'),
-                'pronosticos' => $form->pronosticos->map(function ($p) {
-                    return [
-                        'carrera_nombre' => $p->carrera->nombre ?? 'N/A',
-                        'caballo_nombre' => $p->caballo->nombre ?? 'N/A',
-                        'es_suplente' => (bool)$p->es_suplente,
-                    ];
-                }),
-            ];
-        });
-
-        return response()->json($data);
+public function listarFormulariosConDetalle(Request $request)
+{
+    $prodeId = $request->input('prode_caballo_id');
+    if (!$prodeId) {
+        return response()->json(['error' => 'ID de Prode requerido'], 400);
     }
+
+    $formularios = Formulario::with(['pronosticos.carrera', 'pronosticos.caballo'])
+        ->where('prode_caballo_id', $prodeId)
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    // LISTA de carreras para este prode
+    $prode = ProdeCaballo::with(['carreras'])->find($prodeId);
+    $carreras = $prode
+        ? $prode->carreras->map(function ($c) {
+            return [
+                'id' => $c->id,
+                'nombre' => $c->nombre,
+            ];
+        })->values()
+        : [];
+
+    $data = $formularios->map(function ($form) {
+        return [
+            'id' => $form->id,
+            'nombre' => $form->nombre,
+            'dni' => $form->dni,
+            'celular' => $form->celular,
+            'forma_pago' => $form->forma_pago,
+            'created_at' => $form->created_at->format('Y-m-d H:i:s'),
+            'pronosticos' => $form->pronosticos->map(function ($p) {
+                return [
+                    'carrera_id' => $p->carrera->id ?? null,
+                    'carrera_nombre' => $p->carrera->nombre ?? 'N/A',
+                    'caballo_nombre' => $p->caballo->nombre ?? '',
+                    'es_suplente' => (bool)$p->es_suplente,
+                ];
+            }),
+        ];
+    });
+
+    return response()->json([
+        'formularios' => $data,
+        'carreras' => $carreras,
+    ]);
+}
+
 }

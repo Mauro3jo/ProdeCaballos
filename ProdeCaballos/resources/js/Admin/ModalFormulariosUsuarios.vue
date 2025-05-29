@@ -16,10 +16,7 @@
         Descargar Excel
       </button>
 
-      <table
-        v-if="!loading && !error && formularios.length"
-        class="tabla-formularios"
-      >
+      <table v-if="!loading && !error && formularios.length" class="tabla-formularios">
         <thead>
           <tr>
             <th>Nombre</th>
@@ -27,7 +24,9 @@
             <th>Celular</th>
             <th>Forma Pago</th>
             <th>Fecha</th>
-            <th>Pronósticos</th>
+            <th v-for="carrera in carreras" :key="carrera.id">
+              {{ carrera.nombre }}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -37,16 +36,14 @@
             <td>{{ form.celular }}</td>
             <td>{{ form.forma_pago }}</td>
             <td>{{ form.created_at }}</td>
-            <td>
-              <ul>
-                <li
-                  v-for="p in form.pronosticos"
-                  :key="p.carrera_nombre + p.caballo_nombre"
-                >
-                  {{ p.carrera_nombre }}: {{ p.caballo_nombre }}
-                  <span v-if="p.es_suplente">(Suplente)</span>
-                </li>
-              </ul>
+            <td
+              v-for="carrera in carreras"
+              :key="carrera.id"
+            >
+              {{
+                (form.pronosticos.find(p => p.carrera_id === carrera.id) || {}).caballo_nombre || ''
+              }}
+              <span v-if="(form.pronosticos.find(p => p.carrera_id === carrera.id) || {}).es_suplente">(Suplente)</span>
             </td>
           </tr>
         </tbody>
@@ -73,6 +70,7 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 
 const formularios = ref([]);
+const carreras = ref([]);
 const loading = ref(false);
 const error = ref('');
 
@@ -80,6 +78,7 @@ const cargarFormularios = async (id) => {
   loading.value = true;
   error.value = '';
   formularios.value = [];
+  carreras.value = [];
   try {
     const res = await fetch('/admin/formularios/listar', {
       method: 'POST',
@@ -92,7 +91,9 @@ const cargarFormularios = async (id) => {
       body: JSON.stringify({ prode_caballo_id: id }),
     });
     if (!res.ok) throw new Error('Error al cargar los formularios');
-    formularios.value = await res.json();
+    const data = await res.json();
+    formularios.value = data.formularios;
+    carreras.value = data.carreras;
   } catch (e) {
     error.value = e.message;
   } finally {
@@ -113,21 +114,22 @@ function cerrar() {
 }
 
 function exportarExcel() {
-  const datos = formularios.value.map((f) => ({
-    Nombre: f.nombre,
-    DNI: f.dni,
-    Celular: f.celular,
-    'Forma de Pago': f.forma_pago,
-    Fecha: f.created_at,
-    Pronosticos: f.pronosticos
-      .map(
-        (p) =>
-          `${p.carrera_nombre}: ${p.caballo_nombre}${
-            p.es_suplente ? ' (Suplente)' : ''
-          }`
-      )
-      .join(', '),
-  }));
+  const datos = formularios.value.map((f) => {
+    const fila = {
+      Nombre: f.nombre,
+      DNI: f.dni,
+      Celular: f.celular,
+      'Forma de Pago': f.forma_pago,
+      Fecha: f.created_at,
+    };
+    carreras.value.forEach(carrera => {
+      const p = f.pronosticos.find(pr => pr.carrera_id === carrera.id);
+      fila[carrera.nombre] = p
+        ? `${p.caballo_nombre || ''}${p.es_suplente ? ' (Suplente)' : ''}`
+        : '';
+    });
+    return fila;
+  });
 
   const ws = XLSX.utils.json_to_sheet(datos);
   const wb = XLSX.utils.book_new();
