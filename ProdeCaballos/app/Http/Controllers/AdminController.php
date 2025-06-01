@@ -33,64 +33,81 @@ class AdminController extends Controller
         return view('admin.home', ['user' => $user]);
     }
 
-    // Nuevo método para listar los Prodes (solo datos básicos)
-    public function listarProdes()
-    {
-        $prodes = ProdeCaballo::select('id', 'nombre', 'precio', 'fechafin')->orderBy('fechafin', 'desc')->get();
-        return response()->json($prodes);
-    }
-
-    // Método modificado para filtrar por prode_caballo_id
-public function listarFormulariosConDetalle(Request $request)
+// Nuevo método para listar los Prodes (ahora incluye foto_url)
+public function listarProdes()
 {
-    $prodeId = $request->input('prode_caballo_id');
-    if (!$prodeId) {
-        return response()->json(['error' => 'ID de Prode requerido'], 400);
-    }
-
-    $formularios = Formulario::with(['pronosticos.carrera', 'pronosticos.caballo'])
-        ->where('prode_caballo_id', $prodeId)
-        ->orderBy('created_at', 'desc')
-        ->get();
-
-    // LISTA de carreras para este prode
-    $prode = ProdeCaballo::with(['carreras'])->find($prodeId);
-    $carreras = $prode
-        ? $prode->carreras->map(function ($c) {
+    $prodes = ProdeCaballo::select('id', 'nombre', 'precio', 'fechafin', 'foto')
+        ->orderBy('fechafin', 'desc')
+        ->get()
+        ->map(function ($prode) {
             return [
-                'id' => $c->id,
-                'nombre' => $c->nombre,
+                'id' => $prode->id,
+                'nombre' => $prode->nombre,
+                'precio' => $prode->precio,
+                'fechafin' => $prode->fechafin,
+                // Solo concatená 'storage/' al nombre de la imagen
+                'foto_url' => $prode->foto
+                    ? asset('storage/' . $prode->foto)
+                    : null,
             ];
-        })->values()
-        : [];
+        });
 
-    $data = $formularios->map(function ($form) {
-        return [
-            'id' => $form->id,
-            'nombre' => $form->nombre,
-            'alias' => $form->alias,
-            'alias_admin' => $form->alias_admin,
-            // 'dni' => $form->dni,  // ← eliminado
-            'celular' => $form->celular,
-            'forma_pago' => $form->forma_pago,
-            // Formatear a hora argentina
-            'created_at' => $form->created_at->timezone('America/Argentina/Buenos_Aires')->format('Y-m-d H:i:s'),
-            'pronosticos' => $form->pronosticos->map(function ($p) {
-                return [
-                    'carrera_id' => $p->carrera->id ?? null,
-                    'carrera_nombre' => $p->carrera->nombre ?? 'N/A',
-                    'caballo_nombre' => $p->caballo->nombre ?? '',
-                    'es_suplente' => (bool)$p->es_suplente,
-                ];
-            }),
-        ];
-    });
-
-    return response()->json([
-        'formularios' => $data,
-        'carreras' => $carreras,
-    ]);
+    return response()->json($prodes);
 }
 
 
+
+    // Método modificado para filtrar por prode_caballo_id
+    public function listarFormulariosConDetalle(Request $request)
+    {
+        $prodeId = $request->input('prode_caballo_id');
+        if (!$prodeId) {
+            return response()->json(['error' => 'ID de Prode requerido'], 400);
+        }
+
+        $formularios = Formulario::with(['pronosticos.carrera', 'pronosticos.caballo'])
+            ->where('prode_caballo_id', $prodeId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // LISTA de carreras para este prode
+        $prode = ProdeCaballo::with(['carreras'])->find($prodeId);
+        $carreras = $prode
+            ? $prode->carreras->map(function ($c) {
+                return [
+                    'id' => $c->id,
+                    'nombre' => $c->nombre,
+                ];
+            })->values()
+            : [];
+
+        $data = $formularios->map(function ($form) {
+            return [
+                'id' => $form->id,
+                'nombre' => $form->nombre,
+                'alias' => $form->alias,
+                'alias_admin' => $form->alias_admin,
+                // 'dni' => $form->dni,  // ← eliminado
+                'celular' => $form->celular,
+                'forma_pago' => $form->forma_pago,
+                // Formatear a hora argentina
+                'created_at' => $form->created_at
+                    ->timezone('America/Argentina/Buenos_Aires')
+                    ->format('Y-m-d H:i:s'),
+                'pronosticos' => $form->pronosticos->map(function ($p) {
+                    return [
+                        'carrera_id' => $p->carrera->id ?? null,
+                        'carrera_nombre' => $p->carrera->nombre ?? 'N/A',
+                        'caballo_nombre' => $p->caballo->nombre ?? '',
+                        'es_suplente' => (bool)$p->es_suplente,
+                    ];
+                }),
+            ];
+        });
+
+        return response()->json([
+            'formularios' => $data,
+            'carreras' => $carreras,
+        ]);
+    }
 }

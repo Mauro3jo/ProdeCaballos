@@ -1,4 +1,4 @@
-/* Home.css */
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap');
 
 .admin-home {
   padding: 40px;
@@ -7,6 +7,7 @@
   background-color: #f8f8f8;
   min-height: 100vh;
   color: #222;
+  font-family: 'Roboto', sans-serif;
 }
 
 .actions {
@@ -24,6 +25,7 @@
   font-size: 1.1em;
   transition: background 0.2s;
   cursor: pointer;
+  border: none;
 }
 
 .btn:hover {
@@ -33,34 +35,62 @@
 .prodes-grid {
   margin-top: 20px;
   display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 28px;
+  justify-items: center;
 }
 
 .prode-card {
   background: white;
-  border-radius: 1em;
-  padding: 1.5em;
-  box-shadow: 0 3px 15px rgba(0,0,0,0.1);
-  user-select:none;
-  transition: transform 0.15s ease;
+  border-radius: 1.2em;
+  padding: 1.5em 1.3em;
+  box-shadow: 0 3px 15px rgba(0,0,0,0.09);
+  user-select: none;
+  transition: transform 0.15s ease, box-shadow 0.15s;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-width: 310px;
+  min-height: 145px;
+  gap: 1em;
 }
+
 .prode-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+}
+
+.prode-img {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  border-radius: 0.7em;
+  background: #f1f1f1;
+  border: 1px solid #eee;
+  margin-right: 1.2em;
+}
+
+.prode-card-content {
+  flex: 1;
+  text-align: left;
 }
 
 .prode-nombre {
   font-weight: 700;
-  font-size: 1.2em;
+  font-size: 1.35em;
   margin-bottom: 0.3em;
+  text-transform: uppercase;
 }
+
 .prode-precio,
 .prode-fecha {
   font-weight: 500;
   color: #555;
+  font-size: 1.02em;
 }
-.loading, .error {
+
+.loading,
+.error {
   font-size: 1.2em;
   margin-top: 1.5em;
   color: #b00020;

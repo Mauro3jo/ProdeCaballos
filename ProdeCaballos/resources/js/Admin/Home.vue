@@ -21,9 +21,19 @@
         style="cursor:pointer"
         title="Ver formularios"
       >
-        <div class="prode-nombre">{{ prode.nombre }}</div>
-        <div class="prode-precio">Precio: ${{ prode.precio }}</div>
-        <div class="prode-fecha">Finaliza: {{ formatFecha(prode.fechafin) }}</div>
+        <img
+          v-if="prode.foto_url"
+          :src="prode.foto_url"
+          alt="Imagen del prode"
+          class="prode-img"
+        />
+        <div class="prode-card-content">
+          <div class="prode-nombre">{{ prode.nombre }}</div>
+          <div class="prode-precio">
+            Precio: ${{ Number(prode.precio).toLocaleString('es-AR', { minimumFractionDigits: 2 }) }}
+          </div>
+          <div class="prode-fecha">Finaliza: {{ formatFecha(prode.fechafin) }}</div>
+        </div>
       </div>
     </div>
 
@@ -47,7 +57,7 @@ import GestionCarrerasModal from './GestionCarrerasModal.vue';
 import GestionCaballosModal from './GestionCaballosModal.vue';
 import GestionFormulariosModal from './GestionFormulariosModal.vue';
 import ModalFormulariosUsuarios from './ModalFormulariosUsuarios.vue';
-import './Home.css'; // <--- Importá el CSS global de la vista
+import './Home.css';
 
 const userName = ref('Administrador');
 const showCarreras = ref(false);
@@ -64,7 +74,11 @@ const prodeNombreSeleccionado = ref('');
 
 const formatFecha = (fecha) => {
   if (!fecha) return '';
-  return new Date(fecha).toLocaleString();
+  const d = new Date(fecha);
+  return d.toLocaleString('es-AR', {
+    day: 'numeric', month: 'numeric', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
 };
 
 const cargarProdes = async () => {

@@ -40,6 +40,8 @@ class ProdeCaballoController extends Controller
             'nombre' => 'required|string|max:255',
             'precio' => 'required|numeric',
             'fechafin' => 'required|date',
+            'reglas' => 'nullable|string',
+            'foto' => 'nullable|file|image|max:2048', // hasta 2 MB, ajusta si querés
             'configuracion' => 'required|array',
             'configuracion.cantidad_obligatorias' => 'required|integer',
             'configuracion.cantidad_opcionales' => 'required|integer',
@@ -49,13 +51,21 @@ class ProdeCaballoController extends Controller
             'carreras.*.obligatoria' => 'required|boolean',
         ]);
 
+        // Manejo de la foto
+        $fotoPath = null;
+        if ($request->hasFile('foto')) {
+            $fotoPath = $request->file('foto')->store('prodes', 'public');
+        }
+
         $prode = ProdeCaballo::create([
             'nombre' => $data['nombre'],
             'precio' => $data['precio'],
             'fechafin' => $data['fechafin'],
+            'reglas' => $data['reglas'] ?? null,
+            'foto' => $fotoPath,
         ]);
 
-        // Creación de una o varias configuraciones, aquí solo una configuración nueva.
+        // Configuración
         $configData = $data['configuracion'];
         $configuracion = new ConfiguracionProde([
             'cantidad_obligatorias' => $configData['cantidad_obligatorias'],
@@ -65,6 +75,7 @@ class ProdeCaballoController extends Controller
         ]);
         $configuracion->save();
 
+        // Carreras
         $syncData = [];
         foreach ($data['carreras'] as $carrera) {
             $syncData[$carrera['id']] = ['obligatoria' => $carrera['obligatoria']];
@@ -97,6 +108,8 @@ class ProdeCaballoController extends Controller
             'nombre' => 'required|string|max:255',
             'precio' => 'required|numeric',
             'fechafin' => 'required|date',
+            'reglas' => 'nullable|string',
+            'foto' => 'nullable|file|image|max:2048',
             'configuracion' => 'required|array',
             'configuracion.cantidad_obligatorias' => 'required|integer',
             'configuracion.cantidad_opcionales' => 'required|integer',
@@ -106,15 +119,20 @@ class ProdeCaballoController extends Controller
             'carreras.*.obligatoria' => 'required|boolean',
         ]);
 
-        $prode->update([
-            'nombre' => $data['nombre'],
-            'precio' => $data['precio'],
-            'fechafin' => $data['fechafin'],
-        ]);
+        // Manejo de la foto: si viene nueva la actualiza, sino deja la anterior
+        if ($request->hasFile('foto')) {
+            $fotoPath = $request->file('foto')->store('prodes', 'public');
+            $prode->foto = $fotoPath;
+        }
 
-        // Aquí manejamos la colección de configuraciones: para simplificar actualizamos la primera
+        $prode->nombre = $data['nombre'];
+        $prode->precio = $data['precio'];
+        $prode->fechafin = $data['fechafin'];
+        $prode->reglas = $data['reglas'] ?? null;
+        $prode->save();
+
+        // Configuración
         $configuracion = $prode->configuraciones()->first();
-
         if ($configuracion) {
             $configuracion->update([
                 'cantidad_obligatorias' => $data['configuracion']['cantidad_obligatorias'],
@@ -131,6 +149,7 @@ class ProdeCaballoController extends Controller
             $configuracion->save();
         }
 
+        // Carreras
         $syncData = [];
         foreach ($data['carreras'] as $carrera) {
             $syncData[$carrera['id']] = ['obligatoria' => $carrera['obligatoria']];
