@@ -46,7 +46,8 @@ import { ref, onMounted } from 'vue';
 import GestionCarrerasModal from './GestionCarrerasModal.vue';
 import GestionCaballosModal from './GestionCaballosModal.vue';
 import GestionFormulariosModal from './GestionFormulariosModal.vue';
-import ModalFormulariosUsuarios from './ModalFormulariosUsuarios.vue'; // Modal nuevo
+import ModalFormulariosUsuarios from './ModalFormulariosUsuarios.vue';
+import './Home.css'; // <--- Importá el CSS global de la vista
 
 const userName = ref('Administrador');
 const showCarreras = ref(false);
@@ -96,72 +97,3 @@ onMounted(() => {
   cargarProdes();
 });
 </script>
-
-<style scoped>
-.admin-home {
-  padding: 40px;
-  text-align: center;
-  font-size: 20px;
-  background-color: #f8f8f8;
-  min-height: 100vh;
-  color: #222;
-}
-
-.actions {
-  margin-top: 32px;
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-}
-
-.btn {
-  background: #3b82f6;
-  color: white;
-  border-radius: 0.5em;
-  padding: 0.7em 1.8em;
-  font-size: 1.1em;
-  transition: background 0.2s;
-  cursor: pointer;
-}
-
-.btn:hover {
-  background: #2563eb;
-}
-
-.prodes-grid {
-  margin-top: 20px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
-  gap: 20px;
-}
-
-.prode-card {
-  background: white;
-  border-radius: 1em;
-  padding: 1.5em;
-  box-shadow: 0 3px 15px rgba(0,0,0,0.1);
-  user-select:none;
-  transition: transform 0.15s ease;
-}
-.prode-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
-
-.prode-nombre {
-  font-weight: 700;
-  font-size: 1.2em;
-  margin-bottom: 0.3em;
-}
-.prode-precio,
-.prode-fecha {
-  font-weight: 500;
-  color: #555;
-}
-.loading, .error {
-  font-size: 1.2em;
-  margin-top: 1.5em;
-  color: #b00020;
-  text-align: center;
-}
-</style>

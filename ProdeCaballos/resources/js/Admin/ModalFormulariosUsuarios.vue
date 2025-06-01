@@ -2,7 +2,6 @@
   <div class="modal-backdrop" @click.self="cerrar">
     <div class="modal-content">
       <button class="cerrar-btn" @click="cerrar" aria-label="Cerrar modal">×</button>
-
       <h2>Formularios - {{ prodeNombre }}</h2>
 
       <div v-if="loading" class="form-loading">Cargando formularios...</div>
@@ -20,30 +19,39 @@
         <thead>
           <tr>
             <th>Nombre</th>
-            <th>DNI</th>
+            <th>Alias</th>
+            <th>Alias Admin</th>
             <th>Celular</th>
             <th>Forma Pago</th>
             <th>Fecha</th>
             <th v-for="carrera in carreras" :key="carrera.id">
               {{ carrera.nombre }}
             </th>
+            <th>Acción</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="form in formularios" :key="form.id">
             <td>{{ form.nombre }}</td>
-            <td>{{ form.dni }}</td>
+            <td>{{ form.alias }}</td>
+            <td>{{ form.alias_admin || '-' }}</td>
             <td>{{ form.celular }}</td>
             <td>{{ form.forma_pago }}</td>
             <td>{{ form.created_at }}</td>
-            <td
-              v-for="carrera in carreras"
-              :key="carrera.id"
-            >
+            <td v-for="carrera in carreras" :key="carrera.id">
               {{
                 (form.pronosticos.find(p => p.carrera_id === carrera.id) || {}).caballo_nombre || ''
               }}
               <span v-if="(form.pronosticos.find(p => p.carrera_id === carrera.id) || {}).es_suplente">(Suplente)</span>
+            </td>
+            <td>
+              <button
+                class="btn-wsp"
+                @click="enviarWhatsapp(form)"
+                title="Enviar comprobante por WhatsApp"
+              >
+                WhatsApp
+              </button>
             </td>
           </tr>
         </tbody>
@@ -62,6 +70,9 @@
 <script setup>
 import { ref, watch } from 'vue';
 import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable'; // ← Import correcto
+import './ModalFormulariosUsuarios.css';
 
 const props = defineProps({
   prodeId: Number,
@@ -113,11 +124,13 @@ function cerrar() {
   emit('close');
 }
 
+// Exportar Excel con las mismas columnas que la tabla
 function exportarExcel() {
   const datos = formularios.value.map((f) => {
     const fila = {
       Nombre: f.nombre,
-      DNI: f.dni,
+      Alias: f.alias,
+      'Alias Admin': f.alias_admin || '-',
       Celular: f.celular,
       'Forma de Pago': f.forma_pago,
       Fecha: f.created_at,
@@ -136,77 +149,56 @@ function exportarExcel() {
   XLSX.utils.book_append_sheet(wb, ws, 'Formularios');
   XLSX.writeFile(wb, `formularios_prode_${props.prodeId}.xlsx`);
 }
+
+// Generar PDF comprobante de un formulario y abrir WhatsApp Web con link (no soporta adjuntar archivo, pero sí pre-cargar mensaje)
+function enviarWhatsapp(form) {
+  const doc = new jsPDF();
+
+  // Encabezado
+  doc.setFontSize(16);
+  doc.text('Comprobante de Prode Caballos', 105, 15, { align: 'center' });
+  doc.setFontSize(12);
+
+  // Info principal
+  doc.text(`Prode: ${props.prodeNombre}`, 15, 30);
+  doc.text(`Nombre: ${form.nombre}`, 15, 38);
+  doc.text(`Alias: ${form.alias}`, 15, 46);
+  doc.text(`Alias Admin: ${form.alias_admin || '-'}`, 15, 54);
+  doc.text(`Celular: ${form.celular}`, 15, 62);
+  doc.text(`Forma de Pago: ${form.forma_pago}`, 15, 70);
+  doc.text(`Fecha: ${form.created_at}`, 15, 78);
+
+  // Tabla carreras y pronósticos (usar autoTable como función, no método)
+  const columns = [
+    ...carreras.value.map(c => c.nombre)
+  ];
+  const row = [
+    carreras.value.map(c => {
+      const p = form.pronosticos.find(pr => pr.carrera_id === c.id);
+      return p
+        ? `${p.caballo_nombre || ''}${p.es_suplente ? ' (Suplente)' : ''}`
+        : '';
+    })
+  ];
+  autoTable(doc, {
+    startY: 86,
+    head: [columns],
+    body: row,
+    theme: 'grid',
+    headStyles: { fillColor: [37,99,235] }
+  });
+
+  doc.save(`comprobante_prode_${props.prodeId}_${form.nombre}.pdf`);
+
+  // Prepara mensaje de texto para WhatsApp (resumen en texto plano)
+  let mensaje = `Comprobante Prode: ${props.prodeNombre}\n`;
+  mensaje += `Nombre: ${form.nombre}\nAlias: ${form.alias}\nAlias Admin: ${form.alias_admin || '-'}\nCelular: ${form.celular}\nForma de Pago: ${form.forma_pago}\nFecha: ${form.created_at}\n\nPronósticos:\n`;
+  carreras.value.forEach(c => {
+    const p = form.pronosticos.find(pr => pr.carrera_id === c.id);
+    mensaje += `- ${c.nombre}: ${p ? `${p.caballo_nombre || ''}${p.es_suplente ? ' (Suplente)' : ''}` : ''}\n`;
+  });
+
+  const cel = form.celular.replace(/\D/g, ''); // Solo números
+  window.open(`https://wa.me/54${cel}?text=${encodeURIComponent(mensaje)}`, '_blank');
+}
 </script>
-
-<style scoped>
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-}
-
-.modal-content {
-  background: white;
-  padding: 1.5em 2em;
-  max-width: 90vw;
-  max-height: 90vh;
-  overflow-y: auto;
-  border-radius: 1em;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  position: relative;
-}
-
-.cerrar-btn {
-  position: absolute;
-  top: 1em;
-  right: 1em;
-  background: transparent;
-  border: none;
-  font-size: 1.5em;
-  cursor: pointer;
-}
-
-.form-loading,
-.form-error {
-  text-align: center;
-  font-size: 1.1em;
-  margin: 1em 0;
-}
-
-.tabla-formularios {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1em;
-}
-
-.tabla-formularios th,
-.tabla-formularios td {
-  border: 1px solid #ccc;
-  padding: 0.4em 0.6em;
-  text-align: left;
-}
-
-.tabla-formularios th {
-  background-color: #f0f0f0;
-  font-weight: 700;
-}
-
-.btn-export {
-  margin-top: 0.8em;
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  padding: 0.6em 1.2em;
-  border-radius: 0.4em;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.btn-export:hover {
-  background-color: #1e40af;
-}
-</style>

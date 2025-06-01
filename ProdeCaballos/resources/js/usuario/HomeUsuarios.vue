@@ -6,7 +6,7 @@
       <div v-else-if="error" class="prodes-error">{{ error }}</div>
       <div v-else class="prodes-grid">
         <div
-          v-for="prode in prodes"
+          v-for="prode in prodesVigentes"
           :key="prode.id"
           class="prode-card"
           @click="$emit('abrir-prode', prode.id)"
@@ -21,17 +21,34 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import './HomeUsuarios.css';
+
+// Obtener hora Argentina en ISO para comparar (siempre con zona horaria)
+function ahoraARG() {
+  return new Date(new Date().toLocaleString("en-US", { timeZone: "America/Argentina/Buenos_Aires" }));
+}
 
 const prodes = ref([]);
 const loading = ref(true);
 const error = ref('');
 
+const prodesVigentes = computed(() => {
+  const ahora = ahoraARG();
+  // solo los que NO vencieron
+  return prodes.value.filter(p => {
+    if (!p.fechafin) return true;
+    // Parsear la fecha como UTC o local y comparar con hora Argentina
+    const fin = new Date(p.fechafin);
+    return fin > ahora;
+  });
+});
+
 const formatFecha = (fecha) => {
   if (!fecha) return '';
   const d = new Date(fecha);
-  return d.toLocaleString();
+  // Mostrar en formato argentino, hora local Buenos Aires
+  return d.toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" });
 };
 
 onMounted(async () => {

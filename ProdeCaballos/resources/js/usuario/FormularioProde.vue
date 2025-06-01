@@ -2,8 +2,7 @@
   <div class="formulario-prode-page">
     <button class="volver-btn" @click="volver" aria-label="Volver">← Volver</button>
     <div class="formulario-prode-content">
-      <!-- FORMULARIO COMPLETO -->
-      <form @submit.prevent="enviarFormulario" class="form-main" novalidate>
+      <form v-if="!prodeVencido" @submit.prevent="enviarFormulario" class="form-main" novalidate>
         <!-- Carreras obligatorias -->
         <div v-if="carrerasObligatorias.length" class="form-carreras">
           <h3 class="form-section-title">Carreras obligatorias</h3>
@@ -28,7 +27,7 @@
         <!-- Carreras opcionales -->
         <div v-if="carrerasOpcionales.length" class="form-carreras">
           <h3 class="form-section-title">
-            Carreras opcionales (elegí {{ cantidadOpcionalesRequeridas }} de {{ carrerasOpcionales.length }})
+            Carreras disponibles (elegí {{ cantidadOpcionalesRequeridas }} de {{ carrerasOpcionales.length }})
           </h3>
           <div v-for="(carrera, idx) in carrerasOpcionales" :key="carrera.id" class="carrera-group">
             <div class="label-carrera">
@@ -78,28 +77,52 @@
           <input v-model="form.nombre" placeholder="Nombre y apellido" required class="input" />
         </div>
         <div class="form-group">
-          <input v-model="form.dni" placeholder="DNI" required class="input" />
+          <input v-model="form.alias" placeholder="Alias" required class="input" />
         </div>
         <div class="form-group">
           <input v-model="form.celular" placeholder="Celular" required class="input" />
         </div>
         <div class="form-group">
-          <input v-model="form.forma_pago" placeholder="Forma de pago" required class="input" />
+          <select v-model="form.forma_pago" required class="select-carrera">
+            <option value="">Forma de pago</option>
+            <option value="Efectivo">Efectivo</option>
+            <option value="Transferencia">Transferencia</option>
+          </select>
         </div>
-
+        <div class="form-group" v-if="form.forma_pago === 'Transferencia'">
+          <label class="mb-2"><b>Alias admin para la transferencia</b></label>
+          <div>
+            <label>
+              <input type="radio" v-model="form.alias_admin" value="lafijacuadrera2025" />
+              lafijacuadrera2025
+            </label>
+            <label style="margin-left: 1em;">
+              <input type="radio" v-model="form.alias_admin" value="Studvecinaslindas" />
+              Studvecinaslindas
+            </label>
+          </div>
+        </div>
         <div v-if="serverError" class="form-error">{{ serverError }}</div>
         <button type="submit" class="btn-form" :disabled="!validarFormulario()">
           Enviar pronóstico
         </button>
       </form>
+      <div v-else class="form-error">
+        Este prode ya finalizó. No podés enviar pronóstico.
+        <button class="btn-form mt-3" @click="volver">Volver al home</button>
+      </div>
     </div>
   </div>
 </template>
 
-
 <script setup>
 import { ref, reactive, watch, computed } from "vue";
 import './FormularioProde.css';
+
+// Obtener hora de Buenos Aires como objeto Date
+function ahoraARG() {
+  return new Date(new Date().toLocaleString("en-US", { timeZone: "America/Argentina/Buenos_Aires" }));
+}
 
 const props = defineProps({ id: { type: Number, required: true } });
 const emit = defineEmits(["cerrar", "guardado"]);
@@ -109,26 +132,27 @@ const loading = ref(true);
 const error = ref("");
 const serverError = ref("");
 
-// --- LOGICA REACTIVA PRONOSTICOS ---
-
 const carrerasObligatorias = computed(() => prode.value?.carreras?.filter(c => c.obligatoria) || []);
 const carrerasOpcionales = computed(() => prode.value?.carreras?.filter(c => !c.obligatoria) || []);
 const cantidadOpcionalesRequeridas = computed(() => prode.value?.configuracion?.cantidad_opcionales || 0);
 const cantidadSuplentesRequeridos = computed(() => prode.value?.configuracion?.cantidad_suplentes || 0);
 
-// Obligatorias: { [carreraId]: caballoId }
 const pronosticosObligatorias = reactive({});
-// Opcionales: { [carreraId]: caballoId }
 const pronosticosOpcionales = reactive({});
 const suplentes = reactive([]);
+
+// --- Validar si prode está vencido ---
+const prodeVencido = computed(() => {
+  if (!prode.value?.fechafin) return false;
+  const ahora = ahoraARG();
+  return new Date(prode.value.fechafin) <= ahora;
+});
 
 // Helpers
 function getCaballosDeCarrera(carreraId) {
   const carrera = prode.value?.carreras?.find(c => c.id === carreraId);
   return carrera?.caballos || [];
 }
-
-// SOLO UNO por carrera (desmarca otros check al seleccionar uno)
 function onCheckObligatoria(carreraId, caballoId) {
   pronosticosObligatorias[carreraId] =
     pronosticosObligatorias[carreraId] === caballoId ? "" : caballoId;
@@ -137,21 +161,17 @@ function onCheckOpcional(carreraId, caballoId) {
   pronosticosOpcionales[carreraId] =
     pronosticosOpcionales[carreraId] === caballoId ? "" : caballoId;
 }
-// Solo X opcionales permitidas
 function isOpcionalDisabled(carreraId, caballoId) {
   const cantidadElegidas = Object.values(pronosticosOpcionales).filter(v => v).length;
-  // Si ya elegí en esta carrera, no se deshabilita nunca
   return (
     !pronosticosOpcionales[carreraId] &&
     cantidadElegidas >= cantidadOpcionalesRequeridas.value
   );
 }
-// Suplentes: select carrera + solo uno por caballo
 function onCheckSuplente(idx, caballoId) {
   suplentes[idx].caballoId =
     suplentes[idx].caballoId === caballoId ? "" : caballoId;
 }
-// Para suplentes: carreras opcionales NO usadas ni antes ni en otros suplentes
 function carrerasOpcionalesNoUsadasEnSuplentes(idx) {
   const usadasEnOpcionales = Object.keys(pronosticosOpcionales).filter(cid => pronosticosOpcionales[cid]);
   const usadasEnSuplentes = suplentes.map((s, i) => i !== idx ? s.carreraId : null).filter(Boolean);
@@ -162,12 +182,12 @@ function carrerasOpcionalesNoUsadasEnSuplentes(idx) {
 
 const form = reactive({
   nombre: "",
-  dni: "",
+  alias: "",
+  alias_admin: "",
   celular: "",
   forma_pago: "",
 });
 
-// CARGA Y RESET
 const cargarProde = async (id) => {
   loading.value = true;
   error.value = "";
@@ -184,23 +204,20 @@ const cargarProde = async (id) => {
     const data = await res.json();
     prode.value = data;
 
-    // Inicializar obligatorias
     Object.keys(pronosticosObligatorias).forEach(key => delete pronosticosObligatorias[key]);
     carrerasObligatorias.value.forEach(c => pronosticosObligatorias[c.id] = "");
 
-    // Inicializar opcionales
     Object.keys(pronosticosOpcionales).forEach(key => delete pronosticosOpcionales[key]);
     carrerasOpcionales.value.forEach(c => pronosticosOpcionales[c.id] = "");
 
-    // Inicializar suplentes
     suplentes.length = 0;
     for (let i = 0; i < cantidadSuplentesRequeridos.value; i++) {
       suplentes.push({ carreraId: "", caballoId: "" });
     }
 
-    // Reset datos usuario
     form.nombre = "";
-    form.dni = "";
+    form.alias = "";
+    form.alias_admin = "";
     form.celular = "";
     form.forma_pago = "";
   } catch (e) {
@@ -221,25 +238,29 @@ function volver() {
 }
 
 function validarFormulario() {
-  // Obligatorias: todas completas
+  // Si está vencido, ni siquiera permitir validar
+  if (prodeVencido.value) return false;
   if (carrerasObligatorias.value.some(c => !pronosticosObligatorias[c.id])) return false;
-  // Opcionales: solo la cantidad justa, y solo en carreras diferentes
   const elegidas = Object.keys(pronosticosOpcionales).filter(cid => pronosticosOpcionales[cid]);
   if (elegidas.length !== cantidadOpcionalesRequeridas.value) return false;
-  // Suplentes: todos completos y distintas carreras
   const suplentesIds = suplentes.map(s => s.carreraId);
   if (
     suplentes.length !== cantidadSuplentesRequeridos.value ||
     suplentes.some(s => !s.carreraId || !s.caballoId) ||
     new Set(suplentesIds).size !== suplentesIds.length
   ) return false;
-  // Datos personales
-  if (!form.nombre || !form.dni || !form.celular || !form.forma_pago) return false;
+  if (!form.nombre || !form.alias || !form.celular || !form.forma_pago) return false;
+  if (!["Efectivo", "Transferencia"].includes(form.forma_pago)) return false;
+  if (form.forma_pago === "Transferencia" && !form.alias_admin) return false;
   return true;
 }
 
 async function enviarFormulario() {
   serverError.value = "";
+  if (prodeVencido.value) {
+    serverError.value = "Este prode ya finalizó. No podés enviar pronóstico.";
+    return;
+  }
   if (!validarFormulario()) {
     serverError.value = "Completá todos los campos y pronósticos correctamente.";
     return;
@@ -266,14 +287,12 @@ async function enviarFormulario() {
   const payload = {
     prode_caballo_id: prode.value.id,
     nombre: form.nombre,
-    dni: form.dni,
+    alias: form.alias,
+    alias_admin: form.forma_pago === "Transferencia" ? form.alias_admin : null,
     celular: form.celular,
     forma_pago: form.forma_pago,
     pronosticos,
   };
-
-  // LOG para ver qué se manda
-  console.log("Payload enviado al backend:", JSON.stringify(payload, null, 2));
 
   try {
     const res = await fetch("/api/guardar-formulario", {
@@ -293,6 +312,4 @@ async function enviarFormulario() {
     serverError.value = e.message;
   }
 }
-
-
 </script>

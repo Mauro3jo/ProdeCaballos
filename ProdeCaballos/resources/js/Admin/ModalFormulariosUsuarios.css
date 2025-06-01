@@ -1,0 +1,86 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.modal-content {
+  background: white;
+  padding: 1.5em 2em;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 1em;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.cerrar-btn {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+  background: transparent;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+}
+
+.form-loading,
+.form-error {
+  text-align: center;
+  font-size: 1.1em;
+  margin: 1em 0;
+}
+
+.tabla-formularios {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1em;
+}
+
+.tabla-formularios th,
+.tabla-formularios td {
+  border: 1px solid #ccc;
+  padding: 0.4em 0.6em;
+  text-align: left;
+}
+
+.tabla-formularios th {
+  background-color: #f0f0f0;
+  font-weight: 700;
+}
+
+.btn-export {
+  margin-top: 0.8em;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.6em 1.2em;
+  border-radius: 0.4em;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-export:hover {
+  background-color: #1e40af;
+}
+
+.btn-wsp {
+  background: #25d366;
+  color: #fff;
+  border: none;
+  padding: 0.45em 1em;
+  border-radius: 0.4em;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1em;
+  transition: background 0.17s;
+  margin-top: 0.2em;
+}
+.btn-wsp:hover {
+  background: #128c7e;
+}

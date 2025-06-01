@@ -68,10 +68,13 @@ public function listarFormulariosConDetalle(Request $request)
         return [
             'id' => $form->id,
             'nombre' => $form->nombre,
-            'dni' => $form->dni,
+            'alias' => $form->alias,
+            'alias_admin' => $form->alias_admin,
+            // 'dni' => $form->dni,  // ← eliminado
             'celular' => $form->celular,
             'forma_pago' => $form->forma_pago,
-            'created_at' => $form->created_at->format('Y-m-d H:i:s'),
+            // Formatear a hora argentina
+            'created_at' => $form->created_at->timezone('America/Argentina/Buenos_Aires')->format('Y-m-d H:i:s'),
             'pronosticos' => $form->pronosticos->map(function ($p) {
                 return [
                     'carrera_id' => $p->carrera->id ?? null,
@@ -88,5 +91,6 @@ public function listarFormulariosConDetalle(Request $request)
         'carreras' => $carreras,
     ]);
 }
+
 
 }
