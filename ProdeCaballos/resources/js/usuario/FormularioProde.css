@@ -50,6 +50,36 @@
   margin-bottom: 2em;
 }
 
+/* === IMAGEN DEL PRODE ARRIBA === */
+.prode-form-img-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1em;
+}
+.prode-form-img {
+  max-width: 170px;
+  max-height: 170px;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 0.7em;
+  background: #f1f1f1;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 14px 0 rgba(0,0,0,0.14);
+}
+/* Responsive imagen */
+@media (max-width: 600px) {
+  .prode-form-img {
+    max-width: 110px;
+    max-height: 110px;
+    border-radius: 0.5em;
+  }
+  .prode-form-img-wrap {
+    margin-bottom: 0.65em;
+  }
+}
+
 .form-title {
   font-size: 1.5em;
   font-weight: bold;
@@ -205,6 +235,7 @@
   color: var(--yellow);
 }
 
+/* Compactar más en mobile */
 @media (max-width: 700px) {
   .formulario-prode-content {
     max-width: 99vw;
@@ -223,5 +254,38 @@
   }
   .caballos-checkboxes-vertical {
     gap: 0.30em;
+  }
+}
+@media (max-width: 540px) {
+  .formulario-prode-content {
+    padding: 0.3em 0.1em 0.6em 0.1em;
+    border-radius: 0.4em;
+  }
+  .form-main {
+    gap: 0.5em;
+  }
+  .form-group {
+    margin-bottom: 0.28em;
+  }
+  .input,
+  .select-carrera {
+    padding: 0.6em 0.5em;
+    font-size: 0.97em;
+  }
+  .carrera-group {
+    margin-bottom: 0.6em;
+  }
+  .caballo-checkbox {
+    padding: 0.06em 0.3em 0.06em 0.17em;
+    font-size: 0.95em;
+  }
+  .btn-form {
+    font-size: 1em;
+    padding: 0.45em 0;
+    margin-top: 0.5em;
+  }
+  .form-section-title {
+    margin-bottom: 0.3em;
+    font-size: 0.99em;
   }
 }

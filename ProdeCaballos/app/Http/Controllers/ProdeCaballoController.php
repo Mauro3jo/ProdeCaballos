@@ -41,7 +41,7 @@ class ProdeCaballoController extends Controller
             'precio' => 'required|numeric',
             'fechafin' => 'required|date',
             'reglas' => 'nullable|string',
-            'foto' => 'nullable|file|image|max:2048', // hasta 2 MB, ajusta si querés
+            'foto' => 'nullable|file|image|max:2048',
             'configuracion' => 'required|array',
             'configuracion.cantidad_obligatorias' => 'required|integer',
             'configuracion.cantidad_opcionales' => 'required|integer',
@@ -51,10 +51,21 @@ class ProdeCaballoController extends Controller
             'carreras.*.obligatoria' => 'required|boolean',
         ]);
 
-        // Manejo de la foto
         $fotoPath = null;
         if ($request->hasFile('foto')) {
-            $fotoPath = $request->file('foto')->store('prodes', 'public');
+            $foto = $request->file('foto');
+            $nombreArchivo = uniqid() . '.' . $foto->getClientOriginalExtension();
+
+            // Lee el path desde el .env (relativo a la raíz del proyecto)
+            $imgPath = base_path(env('IMAGES_PUBLIC_PATH', 'public/img'));
+
+            // Crea la carpeta si no existe
+            if (!is_dir($imgPath)) {
+                mkdir($imgPath, 0775, true);
+            }
+
+            $foto->move($imgPath, $nombreArchivo);
+            $fotoPath = $nombreArchivo; // Solo el nombre del archivo
         }
 
         $prode = ProdeCaballo::create([
@@ -65,7 +76,6 @@ class ProdeCaballoController extends Controller
             'foto' => $fotoPath,
         ]);
 
-        // Configuración
         $configData = $data['configuracion'];
         $configuracion = new ConfiguracionProde([
             'cantidad_obligatorias' => $configData['cantidad_obligatorias'],
@@ -75,7 +85,6 @@ class ProdeCaballoController extends Controller
         ]);
         $configuracion->save();
 
-        // Carreras
         $syncData = [];
         foreach ($data['carreras'] as $carrera) {
             $syncData[$carrera['id']] = ['obligatoria' => $carrera['obligatoria']];
@@ -119,10 +128,19 @@ class ProdeCaballoController extends Controller
             'carreras.*.obligatoria' => 'required|boolean',
         ]);
 
-        // Manejo de la foto: si viene nueva la actualiza, sino deja la anterior
+        // Guarda la nueva imagen si viene una, solo el nombre
         if ($request->hasFile('foto')) {
-            $fotoPath = $request->file('foto')->store('prodes', 'public');
-            $prode->foto = $fotoPath;
+            $foto = $request->file('foto');
+            $nombreArchivo = uniqid() . '.' . $foto->getClientOriginalExtension();
+
+            $imgPath = base_path(env('IMAGES_PUBLIC_PATH', 'public/img'));
+
+            if (!is_dir($imgPath)) {
+                mkdir($imgPath, 0775, true);
+            }
+
+            $foto->move($imgPath, $nombreArchivo);
+            $prode->foto = $nombreArchivo;
         }
 
         $prode->nombre = $data['nombre'];
@@ -131,7 +149,6 @@ class ProdeCaballoController extends Controller
         $prode->reglas = $data['reglas'] ?? null;
         $prode->save();
 
-        // Configuración
         $configuracion = $prode->configuraciones()->first();
         if ($configuracion) {
             $configuracion->update([
@@ -149,7 +166,6 @@ class ProdeCaballoController extends Controller
             $configuracion->save();
         }
 
-        // Carreras
         $syncData = [];
         foreach ($data['carreras'] as $carrera) {
             $syncData[$carrera['id']] = ['obligatoria' => $carrera['obligatoria']];

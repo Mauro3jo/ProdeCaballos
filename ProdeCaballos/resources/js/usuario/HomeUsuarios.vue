@@ -11,9 +11,18 @@
           class="prode-card"
           @click="$emit('abrir-prode', prode.id)"
         >
-          <div class="prode-nombre">{{ prode.nombre }}</div>
-          <div class="prode-precio">Precio: ${{ prode.precio }}</div>
-          <div class="prode-fecha">Finaliza: {{ formatFecha(prode.fechafin) }}</div>
+          <!-- Imagen del prode -->
+          <img
+            v-if="prode.foto_url"
+            :src="prode.foto_url"
+            alt="Imagen del prode"
+            class="prode-img"
+          />
+          <div class="prode-card-content">
+            <div class="prode-nombre">{{ prode.nombre }}</div>
+            <div class="prode-precio">Precio: ${{ prode.precio }}</div>
+            <div class="prode-fecha">Finaliza: {{ formatFecha(prode.fechafin) }}</div>
+          </div>
         </div>
       </div>
     </div>

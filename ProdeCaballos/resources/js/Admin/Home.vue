@@ -26,6 +26,7 @@
           :src="prode.foto_url"
           alt="Imagen del prode"
           class="prode-img"
+          @error="onImgError($event, prode.foto)"
         />
         <div class="prode-card-content">
           <div class="prode-nombre">{{ prode.nombre }}</div>
@@ -93,7 +94,18 @@ const cargarProdes = async () => {
       },
     });
     if (!res.ok) throw new Error('No se pudo cargar los prodes');
-    prodes.value = await res.json();
+    let data = await res.json();
+    prodes.value = data.prodes ?? data;
+
+    // -------- LOG para debug ----------
+    console.log("Prodes cargados:");
+    prodes.value.forEach((prode, i) => {
+      console.log(`Prode #${i}:`, prode);
+      console.log(`   foto_url:`, prode.foto_url);
+      console.log(`   foto:`, prode.foto);
+    });
+    // -----------------------------------
+
   } catch (e) {
     errorProdes.value = e.message;
   } finally {
@@ -105,6 +117,12 @@ const abrirModalFormularios = (id, nombre) => {
   prodeIdSeleccionado.value = id;
   prodeNombreSeleccionado.value = nombre;
   showModalFormulariosUsuarios.value = true;
+};
+
+// Para debug de error en imagen: podrías mostrar una imagen de fallback o loggear
+const onImgError = (event, foto) => {
+  console.error('No se pudo cargar la imagen:', foto, event.target.src);
+  event.target.style.display = 'none'; // oculta la imagen rota
 };
 
 onMounted(() => {

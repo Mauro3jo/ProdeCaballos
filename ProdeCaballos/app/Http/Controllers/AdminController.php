@@ -47,7 +47,7 @@ public function listarProdes()
                 'fechafin' => $prode->fechafin,
                 // Solo concatená 'storage/' al nombre de la imagen
                 'foto_url' => $prode->foto
-                    ? asset('storage/' . $prode->foto)
+                    ? asset('img/' . $prode->foto)
                     : null,
             ];
         });

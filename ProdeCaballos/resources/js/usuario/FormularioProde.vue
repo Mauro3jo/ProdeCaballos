@@ -2,6 +2,11 @@
   <div class="formulario-prode-page">
     <button class="volver-btn" @click="volver" aria-label="Volver">← Volver</button>
     <div class="formulario-prode-content">
+      <!-- Imagen del prode arriba -->
+      <div v-if="prode?.foto_url" class="prode-form-img-wrap">
+        <img :src="prode.foto_url" alt="Imagen del prode" class="prode-form-img" />
+      </div>
+
       <form v-if="!prodeVencido" @submit.prevent="enviarFormulario" class="form-main" novalidate>
         <!-- Carreras obligatorias -->
         <div v-if="carrerasObligatorias.length" class="form-carreras">

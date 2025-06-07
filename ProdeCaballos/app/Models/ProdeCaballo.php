@@ -29,8 +29,9 @@ class ProdeCaballo extends Model
     }
 
     // Accesor para obtener la URL pública de la foto (si existe)
-    public function getFotoUrlAttribute()
-    {
-        return $this->foto ? asset('storage/' . $this->foto) : null;
-    }
+ public function getFotoUrlAttribute()
+{
+    return $this->foto ? asset('img/' . $this->foto) : null;
+}
+
 }

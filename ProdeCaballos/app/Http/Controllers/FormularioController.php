@@ -10,56 +10,19 @@ use Illuminate\Support\Facades\DB;
 class FormularioController extends Controller
 {
     // 1. Listado de prodes con configuraciones, carreras y caballos
-    public function index()
-    {
-        $prodes = \App\Models\ProdeCaballo::all()->map(function($prode) {
-            return [
-                'id' => $prode->id,
-                'nombre' => $prode->nombre,
-                'precio' => $prode->precio,
-                'fechafin' => $prode->fechafin,
-                'configuracion' => $prode->configuraciones->first(),
-                'carreras' => $prode->carreras->map(function($carrera) use ($prode) {
-                    $pivot = $carrera->pivot ?? null;
-                    return [
-                        'id' => $carrera->id,
-                        'nombre' => $carrera->nombre,
-                        'obligatoria' => $pivot ? (bool)$pivot->obligatoria : false,
-                        'caballos' => $carrera->caballos->map(function($caballo) {
-                            return [
-                                'id' => $caballo->id,
-                                'nombre' => $caballo->nombre,
-                            ];
-                        }),
-                    ];
-                }),
-            ];
-        });
-
-        return response()->json($prodes);
-    }
-
-    public function detalleProde(Request $request)
-    {
-        $id = $request->input('id');
-
-        if (!$id) {
-            return response()->json(['error' => 'ID requerido'], 400);
-        }
-
-        $prode = ProdeCaballo::find($id);
-
-        if (!$prode) {
-            return response()->json(['error' => 'Prode no encontrado'], 404);
-        }
-
-        $data = [
+public function index()
+{
+    $prodes = \App\Models\ProdeCaballo::all()->map(function($prode) {
+        return [
             'id' => $prode->id,
             'nombre' => $prode->nombre,
             'precio' => $prode->precio,
             'fechafin' => $prode->fechafin,
+            'foto_url' => $prode->foto
+                ? asset('img/' . $prode->foto)
+                : null,
             'configuracion' => $prode->configuraciones->first(),
-            'carreras' => $prode->carreras->map(function($carrera) {
+            'carreras' => $prode->carreras->map(function($carrera) use ($prode) {
                 $pivot = $carrera->pivot ?? null;
                 return [
                     'id' => $carrera->id,
@@ -74,9 +37,52 @@ class FormularioController extends Controller
                 ];
             }),
         ];
+    });
 
-        return response()->json($data);
+    return response()->json($prodes);
+}
+
+
+ public function detalleProde(Request $request)
+{
+    $id = $request->input('id');
+
+    if (!$id) {
+        return response()->json(['error' => 'ID requerido'], 400);
     }
+
+    $prode = ProdeCaballo::find($id);
+
+    if (!$prode) {
+        return response()->json(['error' => 'Prode no encontrado'], 404);
+    }
+
+    $data = [
+        'id' => $prode->id,
+        'nombre' => $prode->nombre,
+        'precio' => $prode->precio,
+        'fechafin' => $prode->fechafin,
+        'foto_url' => $prode->foto ? asset('img/' . $prode->foto) : null, // <-- ¡IMPORTANTE!
+        'configuracion' => $prode->configuraciones->first(),
+        'carreras' => $prode->carreras->map(function($carrera) {
+            $pivot = $carrera->pivot ?? null;
+            return [
+                'id' => $carrera->id,
+                'nombre' => $carrera->nombre,
+                'obligatoria' => $pivot ? (bool)$pivot->obligatoria : false,
+                'caballos' => $carrera->caballos->map(function($caballo) {
+                    return [
+                        'id' => $caballo->id,
+                        'nombre' => $caballo->nombre,
+                    ];
+                }),
+            ];
+        }),
+    ];
+
+    return response()->json($data);
+}
+
 
     // 2. Detalle de un solo prode (por ID) con todo incluido
     public function show(Request $request)
