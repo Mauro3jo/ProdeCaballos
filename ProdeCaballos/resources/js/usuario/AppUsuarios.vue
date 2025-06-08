@@ -1,27 +1,7 @@
 <template>
-  <div>
-    <HomeUsuarios v-if="vista === 'lista'" @abrir-prode="abrirProde" />
-    <FormularioProde
-      v-else-if="vista === 'formulario'"
-      :id="idSeleccionado"
-      @cerrar="volverALista"
-    />
-  </div>
+  <router-view />
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import HomeUsuarios from './HomeUsuarios.vue';
-import FormularioProde from './FormularioProde.vue';
-
-const vista = ref('lista');
-const idSeleccionado = ref(null);
-
-function abrirProde(id) {
-  idSeleccionado.value = id;
-  vista.value = 'formulario';
-}
-function volverALista() {
-  vista.value = 'lista';
-}
+// Ya no necesitas nada más acá, Vue Router maneja las vistas y los ids.
 </script>

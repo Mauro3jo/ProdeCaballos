@@ -9,7 +9,7 @@
           v-for="prode in prodesVigentes"
           :key="prode.id"
           class="prode-card"
-          @click="$emit('abrir-prode', prode.id)"
+          @click="abrirProde(prode.id)"
         >
           <!-- Imagen del prode -->
           <img
@@ -31,6 +31,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router'; // Importa el router
 import './HomeUsuarios.css';
 
 // Obtener hora Argentina en ISO para comparar (siempre con zona horaria)
@@ -41,6 +42,8 @@ function ahoraARG() {
 const prodes = ref([]);
 const loading = ref(true);
 const error = ref('');
+
+const router = useRouter(); // Instancia del router
 
 const prodesVigentes = computed(() => {
   const ahora = ahoraARG();
@@ -59,6 +62,10 @@ const formatFecha = (fecha) => {
   // Mostrar en formato argentino, hora local Buenos Aires
   return d.toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" });
 };
+
+function abrirProde(id) {
+  router.push(`/prode/${id}`);
+}
 
 onMounted(async () => {
   try {

@@ -289,3 +289,58 @@
     font-size: 0.99em;
   }
 }
+.prode-reglas-box {
+  background: var(--grey-dark);  /* Ahora igual que el card principal */
+  border-radius: 0.8em;
+  margin: 0.6em 0 1.2em 0;
+  padding: 1em 1em 0.7em 1.2em;
+  color: var(--white);
+  border: 2px solid #202226;
+}
+
+.prode-reglas-title {
+  font-size: 1.09em;
+  font-weight: bold;
+  margin-bottom: 0.42em;
+  color: var(--yellow) !important;
+  letter-spacing: 0.04em;
+}
+
+.prode-reglas-list {
+  padding-left: 1.25em;
+  font-size: 1em;
+  color: var(--white);
+  margin-bottom: 0.1em;
+}
+
+.prode-reglas-list li {
+  margin-bottom: 0.35em;
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+}
+
+.prode-reglas-num {
+  color: var(--yellow) !important;
+  font-weight: bold;
+  font-size: 1.14em;
+  margin-right: 0.44em;
+  min-width: 1.5em;
+  display: inline-block;
+}
+
+@media (max-width: 600px) {
+  .prode-reglas-box {
+    padding: 0.7em 0.5em 0.6em 0.7em;
+    font-size: 0.97em;
+    border-radius: 0.5em;
+  }
+  .prode-reglas-title {
+    font-size: 1em;
+    margin-bottom: 0.33em;
+  }
+  .prode-reglas-num {
+    font-size: 1em;
+    min-width: 1.1em;
+  }
+}

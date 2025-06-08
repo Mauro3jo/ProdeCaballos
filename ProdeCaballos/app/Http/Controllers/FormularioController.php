@@ -63,6 +63,7 @@ public function index()
         'precio' => $prode->precio,
         'fechafin' => $prode->fechafin,
         'foto_url' => $prode->foto ? asset('img/' . $prode->foto) : null, // <-- ¡IMPORTANTE!
+        'reglas' => $prode->reglas,
         'configuracion' => $prode->configuraciones->first(),
         'carreras' => $prode->carreras->map(function($carrera) {
             $pivot = $carrera->pivot ?? null;

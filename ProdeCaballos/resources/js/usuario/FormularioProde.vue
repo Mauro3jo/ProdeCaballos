@@ -7,6 +7,17 @@
         <img :src="prode.foto_url" alt="Imagen del prode" class="prode-form-img" />
       </div>
 
+      <!-- Reglas debajo de la imagen y antes del form -->
+      <div v-if="prode?.reglas" class="prode-reglas-box">
+        <h3 class="prode-reglas-title">Reglas del Prode</h3>
+        <ol class="prode-reglas-list">
+          <li v-for="(regla, idx) in parseReglasConNumeros(prode.reglas)" :key="idx">
+            <span class="prode-reglas-num">{{ idx + 1 }}.</span>
+            <span>{{ regla }}</span>
+          </li>
+        </ol>
+      </div>
+
       <form v-if="!prodeVencido" @submit.prevent="enviarFormulario" class="form-main" novalidate>
         <!-- Carreras obligatorias -->
         <div v-if="carrerasObligatorias.length" class="form-carreras">
@@ -124,7 +135,6 @@
 import { ref, reactive, watch, computed } from "vue";
 import './FormularioProde.css';
 
-// Obtener hora de Buenos Aires como objeto Date
 function ahoraARG() {
   return new Date(new Date().toLocaleString("en-US", { timeZone: "America/Argentina/Buenos_Aires" }));
 }
@@ -185,6 +195,17 @@ function carrerasOpcionalesNoUsadasEnSuplentes(idx) {
   );
 }
 
+// Función para parsear las reglas tipo "1. xxx 2. yyy" a array y conservar numeración
+function parseReglasConNumeros(texto) {
+  if (!texto) return [];
+  texto = texto.replace(/^Reglas\s*/i, "");
+  let reglas = texto.split(/\d+\.\s*/).filter(x => x.trim() !== "");
+  if (reglas.length === 1 && texto.indexOf("1.") !== 0) {
+    reglas = texto.split(/\n+/).filter(x => x.trim() !== "");
+  }
+  return reglas;
+}
+
 const form = reactive({
   nombre: "",
   alias: "",
@@ -243,7 +264,6 @@ function volver() {
 }
 
 function validarFormulario() {
-  // Si está vencido, ni siquiera permitir validar
   if (prodeVencido.value) return false;
   if (carrerasObligatorias.value.some(c => !pronosticosObligatorias[c.id])) return false;
   const elegidas = Object.keys(pronosticosOpcionales).filter(cid => pronosticosOpcionales[cid]);
@@ -311,10 +331,14 @@ async function enviarFormulario() {
     const result = await res.json();
     if (!res.ok) throw new Error(result.error || "Error al guardar el formulario");
     alert("¡Pronóstico enviado correctamente!");
-    volver();
+    // LIMPIAR EL FORMULARIO
+    await cargarProde(props.id); // <-- esta línea limpia todo como al iniciar
+    // Si querés volver a la lista después, llamá a volver() en vez de limpiar (o las dos)
+    // volver();
     emit("guardado");
   } catch (e) {
     serverError.value = e.message;
   }
 }
 </script>
+

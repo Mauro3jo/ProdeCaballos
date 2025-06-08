@@ -19,6 +19,7 @@
         "jspdf-autotable": "^5.0.2",
         "vue": "^3.5.14",
         "vue-loader": "^17.0.1",
+        "vue-router": "^4.5.1",
         "xlsx": "^0.18.5"
     }
 }
