@@ -40,9 +40,16 @@
             <td>{{ form.created_at }}</td>
             <td v-for="carrera in carreras" :key="carrera.id">
               {{
-                (form.pronosticos.find(p => p.carrera_id === carrera.id) || {}).caballo_nombre || ''
+                (() => {
+                  const p = form.pronosticos.find(pr => pr.carrera_id === carrera.id);
+                  if (!p) return '';
+                  if (p.es_suplente) {
+                    const nro = getNumeroSuplente(form, p);
+                    return `${p.caballo_nombre || ''} (Suplente ${nro})`;
+                  }
+                  return p.caballo_nombre || '';
+                })()
               }}
-              <span v-if="(form.pronosticos.find(p => p.carrera_id === carrera.id) || {}).es_suplente">(Suplente)</span>
             </td>
             <td>
               <button
@@ -71,7 +78,6 @@
 import { ref, watch } from 'vue';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable'; // ← Import correcto
 import './ModalFormulariosUsuarios.css';
 
 const props = defineProps({
@@ -124,6 +130,15 @@ function cerrar() {
   emit('close');
 }
 
+// Dado un form y un pronóstico suplente, devuelve su nro según carrera_id asc
+function getNumeroSuplente(form, pronostico) {
+  if (!pronostico.es_suplente) return null;
+  const suplentesOrdenados = form.pronosticos
+    .filter(p => p.es_suplente)
+    .sort((a, b) => a.carrera_id - b.carrera_id);
+  return suplentesOrdenados.findIndex(p => p.carrera_id === pronostico.carrera_id) + 1;
+}
+
 // Exportar Excel con las mismas columnas que la tabla
 function exportarExcel() {
   const datos = formularios.value.map((f) => {
@@ -137,9 +152,16 @@ function exportarExcel() {
     };
     carreras.value.forEach(carrera => {
       const p = f.pronosticos.find(pr => pr.carrera_id === carrera.id);
-      fila[carrera.nombre] = p
-        ? `${p.caballo_nombre || ''}${p.es_suplente ? ' (Suplente)' : ''}`
-        : '';
+      if (p) {
+        if (p.es_suplente) {
+          const nro = getNumeroSuplente(f, p);
+          fila[carrera.nombre] = `${p.caballo_nombre || ''} (Suplente ${nro})`;
+        } else {
+          fila[carrera.nombre] = p.caballo_nombre || '';
+        }
+      } else {
+        fila[carrera.nombre] = '';
+      }
     });
     return fila;
   });
@@ -150,55 +172,57 @@ function exportarExcel() {
   XLSX.writeFile(wb, `formularios_prode_${props.prodeId}.xlsx`);
 }
 
-// Generar PDF comprobante de un formulario y abrir WhatsApp Web con link (no soporta adjuntar archivo, pero sí pre-cargar mensaje)
+// PDF y WhatsApp: solo carreras con pronóstico, suplente numerado
 function enviarWhatsapp(form) {
   const doc = new jsPDF();
-
-  // Encabezado
+  let linea = 20;
   doc.setFontSize(16);
-  doc.text('Comprobante de Prode Caballos', 105, 15, { align: 'center' });
+  doc.text('Comprobante de Prode Caballos', 105, linea, { align: 'center' });
   doc.setFontSize(12);
+  const margenX = 15;
+  linea += 13;
+  doc.text(`Prode: ${props.prodeNombre}`, margenX, linea); linea += 8;
+  doc.text(`Nombre: ${form.nombre}`, margenX, linea); linea += 8;
+  doc.text(`Alias: ${form.alias}`, margenX, linea); linea += 8;
+  doc.text(`Alias Admin: ${form.alias_admin || '-'}`, margenX, linea); linea += 8;
+  doc.text(`Celular: ${form.celular}`, margenX, linea); linea += 8;
+  doc.text(`Forma de Pago: ${form.forma_pago}`, margenX, linea); linea += 8;
+  doc.text(`Fecha: ${form.created_at}`, margenX, linea); linea += 12;
 
-  // Info principal
-  doc.text(`Prode: ${props.prodeNombre}`, 15, 30);
-  doc.text(`Nombre: ${form.nombre}`, 15, 38);
-  doc.text(`Alias: ${form.alias}`, 15, 46);
-  doc.text(`Alias Admin: ${form.alias_admin || '-'}`, 15, 54);
-  doc.text(`Celular: ${form.celular}`, 15, 62);
-  doc.text(`Forma de Pago: ${form.forma_pago}`, 15, 70);
-  doc.text(`Fecha: ${form.created_at}`, 15, 78);
+  doc.text('Pronósticos:', margenX, linea); linea += 7;
 
-  // Tabla carreras y pronósticos (usar autoTable como función, no método)
-  const columns = [
-    ...carreras.value.map(c => c.nombre)
-  ];
-  const row = [
-    carreras.value.map(c => {
-      const p = form.pronosticos.find(pr => pr.carrera_id === c.id);
-      return p
-        ? `${p.caballo_nombre || ''}${p.es_suplente ? ' (Suplente)' : ''}`
-        : '';
-    })
-  ];
-  autoTable(doc, {
-    startY: 86,
-    head: [columns],
-    body: row,
-    theme: 'grid',
-    headStyles: { fillColor: [37,99,235] }
+  carreras.value.forEach(c => {
+    const p = form.pronosticos.find(pr => pr.carrera_id === c.id);
+    if (p) {
+      let texto = p.caballo_nombre || '';
+      if (p.es_suplente) {
+        const nro = getNumeroSuplente(form, p);
+        texto += ` (Suplente ${nro})`;
+      }
+      doc.text(`- ${c.nombre}: ${texto}`, margenX + 2, linea);
+      linea += 7;
+    }
+    // Si no tiene pronóstico para esa carrera, no imprime nada
   });
 
   doc.save(`comprobante_prode_${props.prodeId}_${form.nombre}.pdf`);
 
-  // Prepara mensaje de texto para WhatsApp (resumen en texto plano)
+  // WhatsApp: igual, solo carreras con pronóstico
   let mensaje = `Comprobante Prode: ${props.prodeNombre}\n`;
   mensaje += `Nombre: ${form.nombre}\nAlias: ${form.alias}\nAlias Admin: ${form.alias_admin || '-'}\nCelular: ${form.celular}\nForma de Pago: ${form.forma_pago}\nFecha: ${form.created_at}\n\nPronósticos:\n`;
   carreras.value.forEach(c => {
     const p = form.pronosticos.find(pr => pr.carrera_id === c.id);
-    mensaje += `- ${c.nombre}: ${p ? `${p.caballo_nombre || ''}${p.es_suplente ? ' (Suplente)' : ''}` : ''}\n`;
+    if (p) {
+      let texto = p.caballo_nombre || '';
+      if (p.es_suplente) {
+        const nro = getNumeroSuplente(form, p);
+        texto += ` (Suplente ${nro})`;
+      }
+      mensaje += `- ${c.nombre}: ${texto}\n`;
+    }
   });
 
-  const cel = form.celular.replace(/\D/g, ''); // Solo números
+  const cel = form.celular.replace(/\D/g, '');
   window.open(`https://wa.me/54${cel}?text=${encodeURIComponent(mensaje)}`, '_blank');
 }
 </script>
