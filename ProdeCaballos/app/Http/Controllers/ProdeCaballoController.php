@@ -39,6 +39,7 @@ class ProdeCaballoController extends Controller
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
             'precio' => 'required|numeric',
+            'premio' => 'required|numeric', // <-- AGREGADO
             'fechafin' => 'required|date',
             'reglas' => 'nullable|string',
             'foto' => 'nullable|file|image|max:2048',
@@ -71,6 +72,7 @@ class ProdeCaballoController extends Controller
         $prode = ProdeCaballo::create([
             'nombre' => $data['nombre'],
             'precio' => $data['precio'],
+            'premio' => $data['premio'], // <-- AGREGADO
             'fechafin' => $data['fechafin'],
             'reglas' => $data['reglas'] ?? null,
             'foto' => $fotoPath,
@@ -116,6 +118,7 @@ class ProdeCaballoController extends Controller
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
             'precio' => 'required|numeric',
+            'premio' => 'required|numeric', // <-- AGREGADO
             'fechafin' => 'required|date',
             'reglas' => 'nullable|string',
             'foto' => 'nullable|file|image|max:2048',
@@ -145,6 +148,7 @@ class ProdeCaballoController extends Controller
 
         $prode->nombre = $data['nombre'];
         $prode->precio = $data['precio'];
+        $prode->premio = $data['premio']; // <-- AGREGADO
         $prode->fechafin = $data['fechafin'];
         $prode->reglas = $data['reglas'] ?? null;
         $prode->save();

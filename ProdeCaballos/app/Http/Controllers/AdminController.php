@@ -33,29 +33,27 @@ class AdminController extends Controller
         return view('admin.home', ['user' => $user]);
     }
 
-// Nuevo método para listar los Prodes (ahora incluye foto_url)
-public function listarProdes()
-{
-    $prodes = ProdeCaballo::select('id', 'nombre', 'precio', 'fechafin', 'foto')
-        ->orderBy('fechafin', 'desc')
-        ->get()
-        ->map(function ($prode) {
-            return [
-                'id' => $prode->id,
-                'nombre' => $prode->nombre,
-                'precio' => $prode->precio,
-                'fechafin' => $prode->fechafin,
-                // Solo concatená 'storage/' al nombre de la imagen
-                'foto_url' => $prode->foto
-                    ? asset('img/' . $prode->foto)
-                    : null,
-            ];
-        });
+    // Nuevo método para listar los Prodes (ahora incluye foto_url y premio)
+    public function listarProdes()
+    {
+        $prodes = ProdeCaballo::select('id', 'nombre', 'premio', 'precio', 'fechafin', 'foto')
+            ->orderBy('fechafin', 'desc')
+            ->get()
+            ->map(function ($prode) {
+                return [
+                    'id' => $prode->id,
+                    'nombre' => $prode->nombre,
+                    'premio' => $prode->premio, // <-- AGREGADO
+                    'precio' => $prode->precio,
+                    'fechafin' => $prode->fechafin,
+                    'foto_url' => $prode->foto
+                        ? asset('img/' . $prode->foto)
+                        : null,
+                ];
+            });
 
-    return response()->json($prodes);
-}
-
-
+        return response()->json($prodes);
+    }
 
     // Método modificado para filtrar por prode_caballo_id
     public function listarFormulariosConDetalle(Request $request)
@@ -87,10 +85,9 @@ public function listarProdes()
                 'nombre' => $form->nombre,
                 'alias' => $form->alias,
                 'alias_admin' => $form->alias_admin,
-                // 'dni' => $form->dni,  // ← eliminado
+                // 'dni' => $form->dni,
                 'celular' => $form->celular,
                 'forma_pago' => $form->forma_pago,
-                // Formatear a hora argentina
                 'created_at' => $form->created_at
                     ->timezone('America/Argentina/Buenos_Aires')
                     ->format('Y-m-d H:i:s'),

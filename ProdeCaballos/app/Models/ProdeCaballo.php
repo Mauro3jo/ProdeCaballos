@@ -8,8 +8,8 @@ class ProdeCaballo extends Model
 {
     protected $table = 'prode_caballos';
 
-    // Agregamos 'foto' y 'reglas' al fillable
-    protected $fillable = ['nombre', 'precio', 'fechafin', 'foto', 'reglas'];
+    // Agregamos 'foto', 'reglas' y 'premio' al fillable
+    protected $fillable = ['nombre', 'precio', 'premio', 'fechafin', 'foto', 'reglas'];
 
     public function formularios()
     {
@@ -29,9 +29,8 @@ class ProdeCaballo extends Model
     }
 
     // Accesor para obtener la URL pública de la foto (si existe)
- public function getFotoUrlAttribute()
-{
-    return $this->foto ? asset('img/' . $this->foto) : null;
-}
-
+    public function getFotoUrlAttribute()
+    {
+        return $this->foto ? asset('img/' . $this->foto) : null;
+    }
 }
