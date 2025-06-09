@@ -4,9 +4,9 @@
     <p>Este es tu panel de administración.</p>
 
     <div class="actions">
-      <button class="btn" @click="showCarreras = true">Gestionar Carreras</button>
-      <button class="btn" @click="showCaballos = true">Gestionar Caballos</button>
-      <button class="btn" @click="showFormularios = true">Gestionar Formularios</button>
+      <button class="btn" @click="showCaballos = true">Cargar Caballo</button>
+      <button class="btn" @click="showCarreras = true">Cargar Carrera</button>
+      <button class="btn" @click="showFormularios = true">Crear Formulario</button>
     </div>
 
     <h2 style="margin-top: 40px;">Prodes Disponibles</h2>
@@ -22,16 +22,14 @@
         title="Ver formularios"
       >
         <img
-          v-if="prode.foto_url"
-          :src="prode.foto_url"
-          alt="Imagen del prode"
+          :src="logoUrl"
+          alt="Logo del prode"
           class="prode-img"
-          @error="onImgError($event, prode.foto)"
         />
         <div class="prode-card-content">
           <div class="prode-nombre">{{ prode.nombre }}</div>
           <div class="prode-precio">
-            Precio: ${{ Number(prode.precio).toLocaleString('es-AR', { minimumFractionDigits: 2 }) }}
+            Precio: ${{ Math.round(prode.precio).toLocaleString('es-AR') }}
           </div>
           <div class="prode-fecha">Finaliza: {{ formatFecha(prode.fechafin) }}</div>
         </div>
@@ -59,6 +57,12 @@ import GestionCaballosModal from './GestionCaballosModal.vue';
 import GestionFormulariosModal from './GestionFormulariosModal.vue';
 import ModalFormulariosUsuarios from './ModalFormulariosUsuarios.vue';
 import './Home.css';
+
+// --- Manejo de logo fijo desde public ---
+const logoUrl = import.meta.env.VITE_IMAGES_PUBLIC_PATH
+  ? `${import.meta.env.VITE_IMAGES_PUBLIC_PATH.replace(/\/$/, '')}/Logo.jpg`
+  : '/Logo.jpg';
+// ----------------------------------------
 
 const userName = ref('Administrador');
 const showCarreras = ref(false);
@@ -97,14 +101,11 @@ const cargarProdes = async () => {
     let data = await res.json();
     prodes.value = data.prodes ?? data;
 
-    // -------- LOG para debug ----------
+    // LOG para debug
     console.log("Prodes cargados:");
     prodes.value.forEach((prode, i) => {
       console.log(`Prode #${i}:`, prode);
-      console.log(`   foto_url:`, prode.foto_url);
-      console.log(`   foto:`, prode.foto);
     });
-    // -----------------------------------
 
   } catch (e) {
     errorProdes.value = e.message;
@@ -117,12 +118,6 @@ const abrirModalFormularios = (id, nombre) => {
   prodeIdSeleccionado.value = id;
   prodeNombreSeleccionado.value = nombre;
   showModalFormulariosUsuarios.value = true;
-};
-
-// Para debug de error en imagen: podrías mostrar una imagen de fallback o loggear
-const onImgError = (event, foto) => {
-  console.error('No se pudo cargar la imagen:', foto, event.target.src);
-  event.target.style.display = 'none'; // oculta la imagen rota
 };
 
 onMounted(() => {
