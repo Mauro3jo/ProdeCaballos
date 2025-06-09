@@ -2,16 +2,16 @@
   <div class="formulario-prode-page">
     <button class="volver-btn" @click="volver" aria-label="Volver">← Volver</button>
     <div class="formulario-prode-content">
-      <!-- Imagen del prode arriba -->
-      <div v-if="prode?.foto_url" class="prode-form-img-wrap">
-        <img :src="prode.foto_url" alt="Imagen del prode" class="prode-form-img" />
+      <!-- Logo fijo arriba -->
+      <div class="prode-form-img-wrap">
+        <img :src="logoUrl" alt="Logo del prode" class="prode-form-img" />
       </div>
 
-      <!-- Reglas debajo de la imagen y antes del form -->
-      <div v-if="prode?.reglas" class="prode-reglas-box">
+      <!-- Reglas debajo del logo -->
+      <div class="prode-reglas-box">
         <h3 class="prode-reglas-title">Reglas del Prode</h3>
         <ol class="prode-reglas-list">
-          <li v-for="(regla, idx) in parseReglasConNumeros(prode.reglas)" :key="idx">
+          <li v-for="(regla, idx) in reglas" :key="idx">
             <span class="prode-reglas-num">{{ idx + 1 }}.</span>
             <span>{{ regla }}</span>
           </li>
@@ -93,7 +93,7 @@
           <input v-model="form.nombre" placeholder="Nombre y apellido" required class="input" />
         </div>
         <div class="form-group">
-          <input v-model="form.alias" placeholder="Alias" required class="input" />
+          <input v-model="form.alias" placeholder="Alias / CBU" required class="input" />
         </div>
         <div class="form-group">
           <input v-model="form.celular" placeholder="Celular" required class="input" />
@@ -133,11 +133,26 @@
 
 <script setup>
 import { ref, reactive, watch, computed } from "vue";
+import { useRouter } from 'vue-router'; // <--- AGREGADO
 import './FormularioProde.css';
 
-function ahoraARG() {
-  return new Date(new Date().toLocaleString("en-US", { timeZone: "America/Argentina/Buenos_Aires" }));
-}
+const router = useRouter(); // <--- AGREGADO
+
+// Logo igual que admin/usuario
+const logoUrl = import.meta.env.VITE_IMAGES_PUBLIC_PATH
+  ? `${import.meta.env.VITE_IMAGES_PUBLIC_PATH.replace(/\/$/, '')}/Logo.jpg`
+  : '/Logo.jpg';
+
+// Reglas fijas por defecto
+const reglasFijas = [
+  "La sentencia de cada carrera esta dada por el fallo oficial del hipico",
+  "Los clásicos que hicieron PUESTA en el prode pierden solo suman un punto",
+  "Los prodes que no están abonados no participan del prode",
+  "Se enviará al grupo un Excel con todos los prodes vendidos",
+  "Los clásicos que no se corren por razones particulares, accidentes o lluvia tienen como reemplazo un clásico suplente 1 y si este no se corre tiene un clásico suplente 2 y así sucesivamente.",
+  "Las carreras suplentes entran en juego solo si las carreras jugadas en el prode no se corren",
+  "Todos los clásicos son a las puertas.."
+];
 
 const props = defineProps({ id: { type: Number, required: true } });
 const emit = defineEmits(["cerrar", "guardado"]);
@@ -156,7 +171,6 @@ const pronosticosObligatorias = reactive({});
 const pronosticosOpcionales = reactive({});
 const suplentes = reactive([]);
 
-// --- Validar si prode está vencido ---
 const prodeVencido = computed(() => {
   if (!prode.value?.fechafin) return false;
   const ahora = ahoraARG();
@@ -164,6 +178,9 @@ const prodeVencido = computed(() => {
 });
 
 // Helpers
+function ahoraARG() {
+  return new Date(new Date().toLocaleString("en-US", { timeZone: "America/Argentina/Buenos_Aires" }));
+}
 function getCaballosDeCarrera(carreraId) {
   const carrera = prode.value?.carreras?.find(c => c.id === carreraId);
   return carrera?.caballos || [];
@@ -195,7 +212,7 @@ function carrerasOpcionalesNoUsadasEnSuplentes(idx) {
   );
 }
 
-// Función para parsear las reglas tipo "1. xxx 2. yyy" a array y conservar numeración
+// Función para parsear las reglas (si vienen desde backend)
 function parseReglasConNumeros(texto) {
   if (!texto) return [];
   texto = texto.replace(/^Reglas\s*/i, "");
@@ -205,6 +222,14 @@ function parseReglasConNumeros(texto) {
   }
   return reglas;
 }
+
+// Computed: muestra las del prode si existen, sino las fijas
+const reglas = computed(() => {
+  if (prode.value?.reglas) {
+    return parseReglasConNumeros(prode.value.reglas);
+  }
+  return reglasFijas;
+});
 
 const form = reactive({
   nombre: "",
@@ -259,8 +284,9 @@ watch(
   { immediate: true }
 );
 
+// ¡AQUÍ el cambio! Ahora va siempre al home
 function volver() {
-  emit("cerrar");
+  router.push('/');
 }
 
 function validarFormulario() {
@@ -331,14 +357,10 @@ async function enviarFormulario() {
     const result = await res.json();
     if (!res.ok) throw new Error(result.error || "Error al guardar el formulario");
     alert("¡Pronóstico enviado correctamente!");
-    // LIMPIAR EL FORMULARIO
-    await cargarProde(props.id); // <-- esta línea limpia todo como al iniciar
-    // Si querés volver a la lista después, llamá a volver() en vez de limpiar (o las dos)
-    // volver();
+    await cargarProde(props.id);
     emit("guardado");
   } catch (e) {
     serverError.value = e.message;
   }
 }
 </script>
-

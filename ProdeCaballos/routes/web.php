@@ -35,6 +35,9 @@ Route::apiResource('formularios', FormularioController::class); // <-- Así, com
 
 Route::post('/admin/prodes/listar', [AdminController::class, 'listarProdes']);
 Route::post('/admin/formularios/listar', [AdminController::class, 'listarFormulariosConDetalle']);
+Route::get('/{any}', function () {
+    return view('welcome');
+})->where('any', '.*');
 
 
 

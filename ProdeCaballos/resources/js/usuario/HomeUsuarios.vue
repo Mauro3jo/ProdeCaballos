@@ -11,16 +11,13 @@
           class="prode-card"
           @click="abrirProde(prode.id)"
         >
-          <!-- Imagen del prode -->
-          <img
-            v-if="prode.foto_url"
-            :src="prode.foto_url"
-            alt="Imagen del prode"
-            class="prode-img"
-          />
+          <!-- Imagen fija igual que en admin -->
+          <img :src="logoUrl" alt="Logo del prode" class="prode-img" />
           <div class="prode-card-content">
             <div class="prode-nombre">{{ prode.nombre }}</div>
-            <div class="prode-precio">Precio: ${{ prode.precio }}</div>
+            <div class="prode-precio">
+              Precio: ${{ Math.round(prode.precio).toLocaleString('es-AR') }}
+            </div>
             <div class="prode-fecha">Finaliza: {{ formatFecha(prode.fechafin) }}</div>
           </div>
         </div>
@@ -31,10 +28,15 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router'; // Importa el router
+import { useRouter } from 'vue-router';
 import './HomeUsuarios.css';
 
-// Obtener hora Argentina en ISO para comparar (siempre con zona horaria)
+// --- Manejo de logo fijo desde public (idéntico al admin) ---
+const logoUrl = import.meta.env.VITE_IMAGES_PUBLIC_PATH
+  ? `${import.meta.env.VITE_IMAGES_PUBLIC_PATH.replace(/\/$/, '')}/Logo.jpg`
+  : '/Logo.jpg';
+// ------------------------------------------------------------
+
 function ahoraARG() {
   return new Date(new Date().toLocaleString("en-US", { timeZone: "America/Argentina/Buenos_Aires" }));
 }
@@ -43,14 +45,12 @@ const prodes = ref([]);
 const loading = ref(true);
 const error = ref('');
 
-const router = useRouter(); // Instancia del router
+const router = useRouter();
 
 const prodesVigentes = computed(() => {
   const ahora = ahoraARG();
-  // solo los que NO vencieron
   return prodes.value.filter(p => {
     if (!p.fechafin) return true;
-    // Parsear la fecha como UTC o local y comparar con hora Argentina
     const fin = new Date(p.fechafin);
     return fin > ahora;
   });
@@ -59,7 +59,6 @@ const prodesVigentes = computed(() => {
 const formatFecha = (fecha) => {
   if (!fecha) return '';
   const d = new Date(fecha);
-  // Mostrar en formato argentino, hora local Buenos Aires
   return d.toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" });
 };
 
