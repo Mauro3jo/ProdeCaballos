@@ -9,6 +9,7 @@
       <form v-if="showForm" @submit.prevent="guardarCarrera" class="mb-3">
         <input v-model="form.nombre" placeholder="Nombre" required class="input mb-2" />
         <input v-model="form.descripcion" placeholder="Descripción" class="input mb-2" />
+        <input v-model="form.hipico" placeholder="Hípico" class="input mb-2" />
         <input v-model="form.fecha" type="datetime-local" class="input mb-2" />
 
         <label class="mb-1 font-semibold">Estado</label>
@@ -28,11 +29,10 @@
           <select v-model="form.caballos[index]" class="input select-caballo" required>
             <option disabled value="">-- Selecciona caballo --</option>
             <option v-for="caballo in todosCaballos" :key="caballo.id" :value="caballo.id">
-              {{ caballo.nombre }}
+              {{ caballo.nombre }}<span v-if="caballo.descripcion"> ({{ caballo.descripcion }})</span>
             </option>
           </select>
 
-          <!-- Mostrar input número sólo si estamos editando -->
           <input
             v-if="editId"
             type="number"
@@ -55,6 +55,7 @@
           <tr>
             <th>Nombre</th>
             <th>Descripción</th>
+            <th>Hípico</th>
             <th>Fecha</th>
             <th>Estado</th>
             <th>Caballos (Número)</th>
@@ -65,6 +66,7 @@
           <tr v-for="carrera in carreras" :key="carrera.id">
             <td>{{ carrera.nombre }}</td>
             <td>{{ carrera.descripcion }}</td>
+            <td>{{ carrera.hipico }}</td>
             <td>{{ carrera.fecha }}</td>
             <td>{{ carrera.estado }}</td>
             <td>
@@ -89,6 +91,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import './GestionCarrerasModal.css';
 
 const carreras = ref([]);
 const todosCaballos = ref([]);
@@ -98,6 +101,7 @@ const editId = ref(null);
 const form = ref({
   nombre: '',
   descripcion: '',
+  hipico: '',
   fecha: '',
   estado: 'ACTIVA',
   caballos: [],
@@ -136,12 +140,12 @@ function guardarCarrera() {
   let payload = {
     nombre: form.value.nombre,
     descripcion: form.value.descripcion,
+    hipico: form.value.hipico,
     fecha: form.value.fecha,
     estado: form.value.estado,
   };
 
   if (editId.value) {
-    // En edición enviamos caballos con números
     const caballosConNumero = {};
     for (let i = 0; i < form.value.caballos.length; i++) {
       const id = form.value.caballos[i];
@@ -154,7 +158,6 @@ function guardarCarrera() {
     }
     payload.caballos = caballosConNumero;
   } else {
-    // En creación enviamos solo ids
     payload.caballos = form.value.caballos;
   }
 
@@ -186,6 +189,7 @@ function editarCarrera(carrera) {
   editId.value = carrera.id;
   form.value.nombre = carrera.nombre;
   form.value.descripcion = carrera.descripcion;
+  form.value.hipico = carrera.hipico;
   form.value.fecha = carrera.fecha ? carrera.fecha.slice(0, 16) : '';
   form.value.estado = carrera.estado;
 
@@ -214,6 +218,7 @@ function resetForm() {
   form.value = {
     nombre: '',
     descripcion: '',
+    hipico: '',
     fecha: '',
     estado: 'ACTIVA',
     caballos: [],
@@ -223,99 +228,3 @@ function resetForm() {
 
 onMounted(cargarCarreras);
 </script>
-
-<style scoped>
-@import url('https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap');
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-.modal-content {
-  background: white;
-  padding: 2em;
-  border-radius: 1em;
-  min-width: 700px;
-  max-height: 85vh;
-  overflow-y: auto;
-  font-family: 'Roboto', sans-serif;
-}
-.input {
-  width: 100%;
-  padding: 0.4em;
-  border-radius: 0.5em;
-  border: 1px solid #d1d5db;
-  margin-bottom: 8px;
-}
-.select-caballo {
-  width: 70%;
-  margin-right: 8px;
-}
-.numero-input {
-  width: 20%;
-}
-.tabla {
-  width: 100%;
-  margin-top: 1em;
-  border-collapse: collapse;
-}
-.tabla th,
-.tabla td {
-  border: 1px solid #e5e7eb;
-  padding: 8px;
-  vertical-align: top;
-}
-.btn,
-.btn-secondary,
-.btn-danger {
-  border-radius: 0.5em;
-  padding: 0.3em 1em;
-  font-size: 1em;
-  cursor: pointer;
-  border: none;
-}
-.btn {
-  background: #3b82f6;
-  color: #fff;
-}
-.btn-secondary {
-  background: #fbbf24;
-  color: #222;
-}
-.btn-danger {
-  background: #ef4444;
-  color: #fff;
-}
-.mt-4 {
-  margin-top: 1.5em;
-}
-.mb-2 {
-  margin-bottom: 0.7em;
-}
-.mb-3 {
-  margin-bottom: 1.2em;
-}
-.mb-4 {
-  margin-bottom: 1.5em;
-}
-.btn-small {
-  padding: 0.2em 0.5em;
-  font-size: 0.8em;
-  line-height: 1;
-}
-.ml-2 {
-  margin-left: 0.5em;
-}
-.caballo-numero-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.5em;
-}
-</style>

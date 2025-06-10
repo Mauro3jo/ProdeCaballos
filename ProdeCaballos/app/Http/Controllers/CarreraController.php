@@ -51,6 +51,7 @@ class CarreraController extends Controller
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
+            'hipico' => 'nullable|string|max:255', // <-- AGREGADO
             'fecha' => 'nullable|date',
             'caballos' => 'required|array',
             'caballos.*' => 'exists:caballos,id',
@@ -62,6 +63,7 @@ class CarreraController extends Controller
         $carrera = Carrera::create([
             'nombre' => $data['nombre'],
             'descripcion' => $data['descripcion'] ?? null,
+            'hipico' => $data['hipico'] ?? null, // <-- AGREGADO
             'fecha' => $data['fecha'] ?? null,
             'estado' => $data['estado'],
         ]);
@@ -84,6 +86,7 @@ class CarreraController extends Controller
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
+            'hipico' => 'nullable|string|max:255', // <-- AGREGADO
             'fecha' => 'nullable|date',
             'estado' => 'required|string|max:50',
             'caballos' => 'required|array',
@@ -93,6 +96,7 @@ class CarreraController extends Controller
         $carrera->update([
             'nombre' => $data['nombre'],
             'descripcion' => $data['descripcion'] ?? null,
+            'hipico' => $data['hipico'] ?? null, // <-- AGREGADO
             'fecha' => $data['fecha'] ?? null,
             'estado' => $data['estado'],
         ]);
