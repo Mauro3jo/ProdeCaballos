@@ -29,19 +29,9 @@
           <select v-model="form.caballos[index]" class="input select-caballo" required>
             <option disabled value="">-- Selecciona caballo --</option>
             <option v-for="caballo in todosCaballos" :key="caballo.id" :value="caballo.id">
-              {{ caballo.nombre }}<span v-if="caballo.descripcion"> ({{ caballo.descripcion }})</span>
+              {{ caballo.nombre }}
             </option>
           </select>
-
-          <input
-            v-if="editId"
-            type="number"
-            min="1"
-            v-model.number="form.numeros[index]"
-            placeholder="Número"
-            class="input numero-input"
-            required
-          />
           <button type="button" @click="removerCaballo(index)" class="btn-danger btn-small ml-2">X</button>
         </div>
 
@@ -58,7 +48,7 @@
             <th>Hípico</th>
             <th>Fecha</th>
             <th>Estado</th>
-            <th>Caballos (Número)</th>
+            <th>Caballos</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -72,7 +62,7 @@
             <td>
               <ul>
                 <li v-for="caballo in carrera.caballos" :key="caballo.id">
-                  {{ caballo.nombre }} ({{ caballo.pivot.numero }})
+                  {{ caballo.nombre }}
                 </li>
               </ul>
             </td>
@@ -105,13 +95,12 @@ const form = ref({
   fecha: '',
   estado: 'ACTIVA',
   caballos: [],
-  numeros: [],
 });
 
 function cargarCarreras() {
   fetch('/carreras')
-    .then((r) => r.json())
-    .then((data) => {
+    .then(r => r.json())
+    .then(data => {
       carreras.value = data.carreras || data;
       todosCaballos.value = data.caballos || [];
     });
@@ -119,16 +108,10 @@ function cargarCarreras() {
 
 function agregarCaballo() {
   form.value.caballos.push('');
-  if (editId.value) {
-    form.value.numeros.push(1);
-  }
 }
 
 function removerCaballo(index) {
   form.value.caballos.splice(index, 1);
-  if (editId.value) {
-    form.value.numeros.splice(index, 1);
-  }
 }
 
 function guardarCarrera() {
@@ -137,29 +120,14 @@ function guardarCarrera() {
     return;
   }
 
-  let payload = {
+  const payload = {
     nombre: form.value.nombre,
     descripcion: form.value.descripcion,
     hipico: form.value.hipico,
     fecha: form.value.fecha,
     estado: form.value.estado,
+    caballos: form.value.caballos,
   };
-
-  if (editId.value) {
-    const caballosConNumero = {};
-    for (let i = 0; i < form.value.caballos.length; i++) {
-      const id = form.value.caballos[i];
-      const numero = form.value.numeros[i];
-      if (!id) {
-        alert('Seleccioná todos los caballos');
-        return;
-      }
-      caballosConNumero[id] = { numero };
-    }
-    payload.caballos = caballosConNumero;
-  } else {
-    payload.caballos = form.value.caballos;
-  }
 
   const url = editId.value ? `/carreras/${editId.value}` : '/carreras';
   const method = editId.value ? 'PUT' : 'POST';
@@ -172,7 +140,7 @@ function guardarCarrera() {
     },
     body: JSON.stringify(payload),
   })
-    .then((r) => {
+    .then(r => {
       if (!r.ok) throw new Error('Error guardando la carrera');
       return r.json();
     })
@@ -182,7 +150,7 @@ function guardarCarrera() {
       showForm.value = false;
       editId.value = null;
     })
-    .catch((e) => alert(e.message));
+    .catch(e => alert(e.message));
 }
 
 function editarCarrera(carrera) {
@@ -194,10 +162,8 @@ function editarCarrera(carrera) {
   form.value.estado = carrera.estado;
 
   form.value.caballos = [];
-  form.value.numeros = [];
-  carrera.caballos.forEach((c) => {
+  carrera.caballos.forEach(c => {
     form.value.caballos.push(c.id);
-    form.value.numeros.push(c.pivot.numero || 1);
   });
 
   showForm.value = true;
@@ -222,7 +188,6 @@ function resetForm() {
     fecha: '',
     estado: 'ACTIVA',
     caballos: [],
-    numeros: [],
   };
 }
 

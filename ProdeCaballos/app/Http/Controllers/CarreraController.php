@@ -51,7 +51,7 @@ class CarreraController extends Controller
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
-            'hipico' => 'nullable|string|max:255', // <-- AGREGADO
+            'hipico' => 'nullable|string|max:255',
             'fecha' => 'nullable|date',
             'caballos' => 'required|array',
             'caballos.*' => 'exists:caballos,id',
@@ -63,7 +63,7 @@ class CarreraController extends Controller
         $carrera = Carrera::create([
             'nombre' => $data['nombre'],
             'descripcion' => $data['descripcion'] ?? null,
-            'hipico' => $data['hipico'] ?? null, // <-- AGREGADO
+            'hipico' => $data['hipico'] ?? null,
             'fecha' => $data['fecha'] ?? null,
             'estado' => $data['estado'],
         ]);
@@ -77,7 +77,8 @@ class CarreraController extends Controller
         return response()->json($carrera->load('caballos'), 201);
     }
 
-    public function update(Request $request, $id)
+    // Nuevo método POST para actualizar sin romper PUT
+    public function actualizarPost(Request $request, $id)
     {
         if (!$this->validarUsuario()) {
             return response()->json(['message' => 'No autorizado.'], 401);
@@ -86,7 +87,7 @@ class CarreraController extends Controller
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
-            'hipico' => 'nullable|string|max:255', // <-- AGREGADO
+            'hipico' => 'nullable|string|max:255',
             'fecha' => 'nullable|date',
             'estado' => 'required|string|max:50',
             'caballos' => 'required|array',
@@ -96,7 +97,40 @@ class CarreraController extends Controller
         $carrera->update([
             'nombre' => $data['nombre'],
             'descripcion' => $data['descripcion'] ?? null,
-            'hipico' => $data['hipico'] ?? null, // <-- AGREGADO
+            'hipico' => $data['hipico'] ?? null,
+            'fecha' => $data['fecha'] ?? null,
+            'estado' => $data['estado'],
+        ]);
+
+        $pivotData = [];
+        foreach ($data['caballos'] as $index => $caballoId) {
+            $pivotData[$caballoId] = ['numero' => $index + 1];
+        }
+        $carrera->caballos()->sync($pivotData);
+
+        return response()->json(['success' => true, 'message' => 'Carrera actualizada']);
+    }
+
+    public function update(Request $request, $id)
+    {
+        if (!$this->validarUsuario()) {
+            return response()->json(['message' => 'No autorizado.'], 401);
+        }
+        $carrera = Carrera::findOrFail($id);
+        $data = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'descripcion' => 'nullable|string',
+            'hipico' => 'nullable|string|max:255',
+            'fecha' => 'nullable|date',
+            'estado' => 'required|string|max:50',
+            'caballos' => 'required|array',
+            'caballos.*' => 'exists:caballos,id',
+        ]);
+
+        $carrera->update([
+            'nombre' => $data['nombre'],
+            'descripcion' => $data['descripcion'] ?? null,
+            'hipico' => $data['hipico'] ?? null,
             'fecha' => $data['fecha'] ?? null,
             'estado' => $data['estado'],
         ]);

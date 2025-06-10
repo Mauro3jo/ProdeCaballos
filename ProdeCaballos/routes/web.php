@@ -1,5 +1,4 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AdminController;
@@ -22,23 +21,23 @@ Route::middleware('web')->group(function () {
     // ADMIN (requiere sesión activa)
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.dashboard');
 
+    // Endpoint POST para actualizar carrera (sin usar PUT)
+    Route::post('/carreras/actualizar/{id}', [CarreraController::class, 'actualizarPost']);
+
     // Endpoints para Vue/JS frontend (sin prefijo)
     Route::apiResource('caballos', CaballoController::class);
     Route::apiResource('carreras', CarreraController::class);
+    Route::apiResource('prode-caballos', ProdeCaballoController::class);
+    Route::apiResource('formularios', FormularioController::class);
 
-    // Ruta para crear ProdeCaballo
-Route::apiResource('prode-caballos', ProdeCaballoController::class);
-// Para la parte pública (sin login)
-Route::apiResource('formularios', FormularioController::class); // <-- Así, como los otros
+    // Extra endpoints específicos
     Route::post('/formularios/detalle', [FormularioController::class, 'detalleProde']);
     Route::post('/api/guardar-formulario', [FormularioController::class, 'store']);
+    Route::post('/admin/prodes/listar', [AdminController::class, 'listarProdes']);
+    Route::post('/admin/formularios/listar', [AdminController::class, 'listarFormulariosConDetalle']);
 
-Route::post('/admin/prodes/listar', [AdminController::class, 'listarProdes']);
-Route::post('/admin/formularios/listar', [AdminController::class, 'listarFormulariosConDetalle']);
-Route::get('/{any}', function () {
-    return view('welcome');
-})->where('any', '.*');
-
-
-
+    // ¡ESTE SIEMPRE AL FINAL!
+    Route::get('/{any}', function () {
+        return view('welcome');
+    })->where('any', '.*');
 });
