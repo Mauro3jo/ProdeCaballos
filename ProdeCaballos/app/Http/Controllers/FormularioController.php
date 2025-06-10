@@ -12,12 +12,12 @@ class FormularioController extends Controller
     // 1. Listado de prodes con configuraciones, carreras y caballos
     public function index()
     {
-        $prodes = \App\Models\ProdeCaballo::all()->map(function($prode) {
+        $prodes = ProdeCaballo::all()->map(function($prode) {
             return [
                 'id' => $prode->id,
                 'nombre' => $prode->nombre,
                 'precio' => $prode->precio,
-                'premio' => $prode->premio, // <-- AGREGADO
+                'premio' => $prode->premio,
                 'fechafin' => $prode->fechafin,
                 'foto_url' => $prode->foto
                     ? asset('img/' . $prode->foto)
@@ -28,6 +28,7 @@ class FormularioController extends Controller
                     return [
                         'id' => $carrera->id,
                         'nombre' => $carrera->nombre,
+                        'hipico' => $carrera->hipico, // <-- AGREGADO
                         'obligatoria' => $pivot ? (bool)$pivot->obligatoria : false,
                         'caballos' => $carrera->caballos->map(function($caballo) {
                             return [
@@ -61,7 +62,7 @@ class FormularioController extends Controller
             'id' => $prode->id,
             'nombre' => $prode->nombre,
             'precio' => $prode->precio,
-            'premio' => $prode->premio, // <-- AGREGADO
+            'premio' => $prode->premio,
             'fechafin' => $prode->fechafin,
             'foto_url' => $prode->foto ? asset('img/' . $prode->foto) : null,
             'reglas' => $prode->reglas,
@@ -71,6 +72,7 @@ class FormularioController extends Controller
                 return [
                     'id' => $carrera->id,
                     'nombre' => $carrera->nombre,
+                    'hipico' => $carrera->hipico, // <-- AGREGADO
                     'obligatoria' => $pivot ? (bool)$pivot->obligatoria : false,
                     'caballos' => $carrera->caballos->map(function($caballo) {
                         return [
@@ -103,7 +105,7 @@ class FormularioController extends Controller
             'id' => $prode->id,
             'nombre' => $prode->nombre,
             'precio' => $prode->precio,
-            'premio' => $prode->premio, // <-- AGREGADO
+            'premio' => $prode->premio,
             'fechafin' => $prode->fechafin,
             'configuracion' => $prode->configuraciones->first(),
             'carreras' => $prode->carreras->map(function($carrera) {
@@ -111,6 +113,7 @@ class FormularioController extends Controller
                 return [
                     'id' => $carrera->id,
                     'nombre' => $carrera->nombre,
+                    'hipico' => $carrera->hipico, // <-- AGREGADO
                     'obligatoria' => $pivot ? (bool)$pivot->obligatoria : false,
                     'caballos' => $carrera->caballos->map(function($caballo) {
                         return [

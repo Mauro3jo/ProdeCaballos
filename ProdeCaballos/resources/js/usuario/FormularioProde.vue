@@ -19,49 +19,65 @@
       </div>
 
       <form v-if="!prodeVencido" @submit.prevent="enviarFormulario" class="form-main" novalidate>
-        <!-- Carreras obligatorias -->
-        <div v-if="carrerasObligatorias.length" class="form-carreras">
+        <!-- Carreras obligatorias agrupadas por hipico -->
+        <div v-if="carrerasObligatoriasAgrupadas.length" class="form-carreras">
           <h3 class="form-section-title">Carreras obligatorias</h3>
-          <div v-for="(carrera, idx) in carrerasObligatorias" :key="carrera.id" class="carrera-group">
-            <div class="label-carrera">
-              {{ idx + 1 }}. {{ carrera.nombre }}
-              <span class="tag-obligatoria">Obligatoria</span>
+          <template v-for="grupo in carrerasObligatoriasAgrupadas" :key="grupo.hipico || 'sin-hipico-oblig'">
+            <h3 class="form-section-title" style="margin-bottom: .45em;" v-if="grupo.hipico">
+              {{ grupo.hipico }}
+            </h3>
+            <h3 class="form-section-title" style="margin-bottom: .45em;" v-else>
+              (Sin hipódromo)
+            </h3>
+            <div v-for="(carrera, idx) in grupo.carreras" :key="carrera.id" class="carrera-group">
+              <div class="label-carrera">
+                {{ idx + 1 }}. {{ carrera.nombre }}
+                <span class="tag-obligatoria">Obligatoria</span>
+              </div>
+              <div class="caballos-checkboxes-vertical">
+                <label v-for="caballo in carrera.caballos" :key="caballo.id" class="caballo-checkbox">
+                  <input
+                    type="checkbox"
+                    :checked="pronosticosObligatorias[carrera.id] === caballo.id"
+                    @change="onCheckObligatoria(carrera.id, caballo.id)"
+                  />
+                  {{ caballo.nombre }}
+                </label>
+              </div>
             </div>
-            <div class="caballos-checkboxes-vertical">
-              <label v-for="caballo in carrera.caballos" :key="caballo.id" class="caballo-checkbox">
-                <input
-                  type="checkbox"
-                  :checked="pronosticosObligatorias[carrera.id] === caballo.id"
-                  @change="onCheckObligatoria(carrera.id, caballo.id)"
-                />
-                {{ caballo.nombre }}
-              </label>
-            </div>
-          </div>
+          </template>
         </div>
 
-        <!-- Carreras opcionales -->
-        <div v-if="carrerasOpcionales.length" class="form-carreras">
+        <!-- Carreras opcionales agrupadas por hipico -->
+        <div v-if="carrerasOpcionalesAgrupadas.length" class="form-carreras">
           <h3 class="form-section-title">
             Carreras disponibles (elegí {{ cantidadOpcionalesRequeridas }} de {{ carrerasOpcionales.length }})
           </h3>
-          <div v-for="(carrera, idx) in carrerasOpcionales" :key="carrera.id" class="carrera-group">
-            <div class="label-carrera">
-              {{ idx + 1 }}. {{ carrera.nombre }}
-              <span class="tag-opcional">Opcional</span>
+          <template v-for="grupo in carrerasOpcionalesAgrupadas" :key="grupo.hipico || 'sin-hipico-opc'">
+            <h3 class="form-section-title" style="margin-bottom: .45em;" v-if="grupo.hipico">
+              {{ grupo.hipico }}
+            </h3>
+            <h3 class="form-section-title" style="margin-bottom: .45em;" v-else>
+              (Sin hipódromo)
+            </h3>
+            <div v-for="(carrera, idx) in grupo.carreras" :key="carrera.id" class="carrera-group">
+              <div class="label-carrera">
+                {{ idx + 1 }}. {{ carrera.nombre }}
+                <span class="tag-opcional">Opcional</span>
+              </div>
+              <div class="caballos-checkboxes-vertical">
+                <label v-for="caballo in carrera.caballos" :key="caballo.id" class="caballo-checkbox">
+                  <input
+                    type="checkbox"
+                    :checked="pronosticosOpcionales[carrera.id] === caballo.id"
+                    @change="onCheckOpcional(carrera.id, caballo.id)"
+                    :disabled="isOpcionalDisabled(carrera.id, caballo.id)"
+                  />
+                  {{ caballo.nombre }}
+                </label>
+              </div>
             </div>
-            <div class="caballos-checkboxes-vertical">
-              <label v-for="caballo in carrera.caballos" :key="caballo.id" class="caballo-checkbox">
-                <input
-                  type="checkbox"
-                  :checked="pronosticosOpcionales[carrera.id] === caballo.id"
-                  @change="onCheckOpcional(carrera.id, caballo.id)"
-                  :disabled="isOpcionalDisabled(carrera.id, caballo.id)"
-                />
-                {{ caballo.nombre }}
-              </label>
-            </div>
-          </div>
+          </template>
         </div>
 
         <!-- Suplentes -->
@@ -133,17 +149,15 @@
 
 <script setup>
 import { ref, reactive, watch, computed } from "vue";
-import { useRouter } from 'vue-router'; // <--- AGREGADO
+import { useRouter } from 'vue-router';
 import './FormularioProde.css';
 
-const router = useRouter(); // <--- AGREGADO
+const router = useRouter();
 
-// Logo igual que admin/usuario
 const logoUrl = import.meta.env.VITE_IMAGES_PUBLIC_PATH
   ? `${import.meta.env.VITE_IMAGES_PUBLIC_PATH.replace(/\/$/, '')}/Logo.jpg`
   : '/Logo.jpg';
 
-// Reglas fijas por defecto
 const reglasFijas = [
   "La sentencia de cada carrera esta dada por el fallo oficial del hipico",
   "Los clásicos que hicieron PUESTA en el prode pierden solo suman un punto",
@@ -177,7 +191,25 @@ const prodeVencido = computed(() => {
   return new Date(prode.value.fechafin) <= ahora;
 });
 
-// Helpers
+// Agrupadores por hipico (nombre hipódromo)
+function agruparPorHipico(carreras) {
+  const grupos = {};
+  carreras.forEach(c => {
+    const key = c.hipico && c.hipico.trim() ? c.hipico : '';
+    if (!grupos[key]) grupos[key] = [];
+    grupos[key].push(c);
+  });
+  // Devuelve array [{ hipico, carreras }]
+  return Object.entries(grupos)
+    .sort(([a], [b]) => (a || '').localeCompare(b || '')) // ordena por nombre hipico asc
+    .map(([hipico, carreras]) => ({ hipico, carreras }));
+}
+
+// Computed agrupadas
+const carrerasObligatoriasAgrupadas = computed(() => agruparPorHipico(carrerasObligatorias.value));
+const carrerasOpcionalesAgrupadas = computed(() => agruparPorHipico(carrerasOpcionales.value));
+
+// Helpers originales
 function ahoraARG() {
   return new Date(new Date().toLocaleString("en-US", { timeZone: "America/Argentina/Buenos_Aires" }));
 }
@@ -212,7 +244,6 @@ function carrerasOpcionalesNoUsadasEnSuplentes(idx) {
   );
 }
 
-// Función para parsear las reglas (si vienen desde backend)
 function parseReglasConNumeros(texto) {
   if (!texto) return [];
   texto = texto.replace(/^Reglas\s*/i, "");
@@ -223,7 +254,6 @@ function parseReglasConNumeros(texto) {
   return reglas;
 }
 
-// Computed: muestra las del prode si existen, sino las fijas
 const reglas = computed(() => {
   if (prode.value?.reglas) {
     return parseReglasConNumeros(prode.value.reglas);
@@ -284,7 +314,6 @@ watch(
   { immediate: true }
 );
 
-// ¡AQUÍ el cambio! Ahora va siempre al home
 function volver() {
   router.push('/');
 }
