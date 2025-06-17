@@ -33,19 +33,20 @@ class AdminController extends Controller
         return view('admin.home', ['user' => $user]);
     }
 
-    // Nuevo método para listar los Prodes (ahora incluye foto_url y premio)
+    // Nuevo método para listar los Prodes (ahora incluye foto_url, premio, tipo)
     public function listarProdes()
     {
-        $prodes = ProdeCaballo::select('id', 'nombre', 'premio', 'precio', 'fechafin', 'foto')
+        $prodes = ProdeCaballo::select('id', 'nombre', 'premio', 'precio', 'fechafin', 'foto', 'tipo')
             ->orderBy('fechafin', 'desc')
             ->get()
             ->map(function ($prode) {
                 return [
                     'id' => $prode->id,
                     'nombre' => $prode->nombre,
-                    'premio' => $prode->premio, // <-- AGREGADO
+                    'premio' => $prode->premio,
                     'precio' => $prode->precio,
                     'fechafin' => $prode->fechafin,
+                    'tipo' => $prode->tipo,
                     'foto_url' => $prode->foto
                         ? asset('img/' . $prode->foto)
                         : null,
@@ -55,7 +56,7 @@ class AdminController extends Controller
         return response()->json($prodes);
     }
 
-    // Método modificado para filtrar por prode_caballo_id
+    // Método modificado para filtrar por prode_caballo_id y traer TODO (incluye preciopagado)
     public function listarFormulariosConDetalle(Request $request)
     {
         $prodeId = $request->input('prode_caballo_id');
@@ -85,9 +86,9 @@ class AdminController extends Controller
                 'nombre' => $form->nombre,
                 'alias' => $form->alias,
                 'alias_admin' => $form->alias_admin,
-                // 'dni' => $form->dni,
                 'celular' => $form->celular,
                 'forma_pago' => $form->forma_pago,
+                'preciopagado' => $form->preciopagado, // <-- NUEVO
                 'created_at' => $form->created_at
                     ->timezone('America/Argentina/Buenos_Aires')
                     ->format('Y-m-d H:i:s'),

@@ -7,15 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 class Formulario extends Model
 {
     protected $fillable = [
-        'prode_caballo_id',
-        'nombre',
-            'alias',   // <-- agregá esta línea
-                    'alias_admin',   // <--- AGREGADO
+    'prode_caballo_id',
+    'nombre',
+    'alias',
+    'alias_admin',
+    'dni',
+    'celular',
+    'forma_pago',
+    'preciopagado'   // <--- AGREGADO
+];
 
-        'dni',
-        'celular',
-        'forma_pago'
-    ];
 
     public function prode()
     {

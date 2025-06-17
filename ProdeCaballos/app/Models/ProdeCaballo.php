@@ -9,7 +9,7 @@ class ProdeCaballo extends Model
     protected $table = 'prode_caballos';
 
     // Agregamos 'foto', 'reglas' y 'premio' al fillable
-    protected $fillable = ['nombre', 'precio', 'premio', 'fechafin', 'foto', 'reglas'];
+    protected $fillable = ['nombre', 'precio', 'premio', 'fechafin', 'foto', 'reglas','tipo'];
 
     public function formularios()
     {

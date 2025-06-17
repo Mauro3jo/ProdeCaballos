@@ -39,9 +39,10 @@ class ProdeCaballoController extends Controller
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
             'precio' => 'required|numeric',
-            'premio' => 'required|numeric', // <-- AGREGADO
+            'premio' => 'required|numeric',
             'fechafin' => 'required|date',
             'reglas' => 'nullable|string',
+            'tipo' => 'nullable|string|max:50',  // <-- AGREGADO
             'foto' => 'nullable|file|image|max:2048',
             'configuracion' => 'required|array',
             'configuracion.cantidad_obligatorias' => 'required|integer',
@@ -60,21 +61,21 @@ class ProdeCaballoController extends Controller
             // Lee el path desde el .env (relativo a la raíz del proyecto)
             $imgPath = base_path(env('IMAGES_PUBLIC_PATH', 'public/img'));
 
-            // Crea la carpeta si no existe
             if (!is_dir($imgPath)) {
                 mkdir($imgPath, 0775, true);
             }
 
             $foto->move($imgPath, $nombreArchivo);
-            $fotoPath = $nombreArchivo; // Solo el nombre del archivo
+            $fotoPath = $nombreArchivo;
         }
 
         $prode = ProdeCaballo::create([
             'nombre' => $data['nombre'],
             'precio' => $data['precio'],
-            'premio' => $data['premio'], // <-- AGREGADO
+            'premio' => $data['premio'],
             'fechafin' => $data['fechafin'],
             'reglas' => $data['reglas'] ?? null,
+            'tipo' => $data['tipo'] ?? null, // <-- AGREGADO
             'foto' => $fotoPath,
         ]);
 
@@ -118,9 +119,10 @@ class ProdeCaballoController extends Controller
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
             'precio' => 'required|numeric',
-            'premio' => 'required|numeric', // <-- AGREGADO
+            'premio' => 'required|numeric',
             'fechafin' => 'required|date',
             'reglas' => 'nullable|string',
+            'tipo' => 'nullable|string|max:50',  // <-- AGREGADO
             'foto' => 'nullable|file|image|max:2048',
             'configuracion' => 'required|array',
             'configuracion.cantidad_obligatorias' => 'required|integer',
@@ -131,7 +133,6 @@ class ProdeCaballoController extends Controller
             'carreras.*.obligatoria' => 'required|boolean',
         ]);
 
-        // Guarda la nueva imagen si viene una, solo el nombre
         if ($request->hasFile('foto')) {
             $foto = $request->file('foto');
             $nombreArchivo = uniqid() . '.' . $foto->getClientOriginalExtension();
@@ -148,9 +149,10 @@ class ProdeCaballoController extends Controller
 
         $prode->nombre = $data['nombre'];
         $prode->precio = $data['precio'];
-        $prode->premio = $data['premio']; // <-- AGREGADO
+        $prode->premio = $data['premio'];
         $prode->fechafin = $data['fechafin'];
         $prode->reglas = $data['reglas'] ?? null;
+        $prode->tipo = $data['tipo'] ?? null; // <-- AGREGADO
         $prode->save();
 
         $configuracion = $prode->configuraciones()->first();

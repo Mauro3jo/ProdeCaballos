@@ -1,0 +1,86 @@
+.navbar {
+  background-color: #101010;
+  padding: 1em;
+  color: white;
+  font-family: 'Roboto', sans-serif;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  position: sticky;   /* 👈 Fijo arriba siempre */
+  top: 0;             /* 👈 Fijo arriba siempre */
+  z-index: 999;       /* 👈 Que esté sobre el contenido */
+}
+
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-logo img {
+  height: 50px;
+  width: auto;
+}
+
+/* Links contenedor */
+.navbar-links {
+  display: flex;
+  gap: 1em;
+}
+
+.navbar-link {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.navbar-link:hover {
+  color: #ffd600;
+}
+
+/* Botón hamburguesa oculto en escritorio */
+.navbar-toggle {
+  display: none;
+  font-size: 1.6em;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .navbar-container {
+    justify-content: center;
+  }
+
+  .navbar-logo {
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 0.5em;
+  }
+
+  .navbar-toggle {
+    display: block;
+    position: absolute;
+    top: 1em;
+    right: 1em;
+  }
+
+  .navbar-links {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: 1em;
+    gap: 0.8em;
+  }
+
+  .navbar-links.activo {
+    display: flex;
+  }
+}

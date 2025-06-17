@@ -1,7 +1,10 @@
 <template>
-  <router-view />
+  <div>
+    <NavbarUsuarios />
+    <router-view />
+  </div>
 </template>
 
 <script setup>
-// Ya no necesitas nada más acá, Vue Router maneja las vistas y los ids.
+import NavbarUsuarios from './NavbarUsuarios.vue'
 </script>

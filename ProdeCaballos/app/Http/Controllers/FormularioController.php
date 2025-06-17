@@ -16,6 +16,7 @@ class FormularioController extends Controller
             return [
                 'id' => $prode->id,
                 'nombre' => $prode->nombre,
+                'tipo' => $prode->tipo, // <-- AGREGADO
                 'precio' => $prode->precio,
                 'premio' => $prode->premio,
                 'fechafin' => $prode->fechafin,
@@ -28,7 +29,7 @@ class FormularioController extends Controller
                     return [
                         'id' => $carrera->id,
                         'nombre' => $carrera->nombre,
-                        'hipico' => $carrera->hipico, // <-- AGREGADO
+                        'hipico' => $carrera->hipico,
                         'obligatoria' => $pivot ? (bool)$pivot->obligatoria : false,
                         'caballos' => $carrera->caballos->map(function($caballo) {
                             return [
@@ -45,47 +46,58 @@ class FormularioController extends Controller
     }
 
     public function detalleProde(Request $request)
-    {
-        $id = $request->input('id');
+{
+    $id = $request->input('id');
 
-        if (!$id) {
-            return response()->json(['error' => 'ID requerido'], 400);
-        }
-
-        $prode = ProdeCaballo::find($id);
-
-        if (!$prode) {
-            return response()->json(['error' => 'Prode no encontrado'], 404);
-        }
-
-        $data = [
-            'id' => $prode->id,
-            'nombre' => $prode->nombre,
-            'precio' => $prode->precio,
-            'premio' => $prode->premio,
-            'fechafin' => $prode->fechafin,
-            'foto_url' => $prode->foto ? asset('img/' . $prode->foto) : null,
-            'reglas' => $prode->reglas,
-            'configuracion' => $prode->configuraciones->first(),
-            'carreras' => $prode->carreras->map(function($carrera) {
-                $pivot = $carrera->pivot ?? null;
-                return [
-                    'id' => $carrera->id,
-                    'nombre' => $carrera->nombre,
-                    'hipico' => $carrera->hipico, // <-- AGREGADO
-                    'obligatoria' => $pivot ? (bool)$pivot->obligatoria : false,
-                    'caballos' => $carrera->caballos->map(function($caballo) {
-                        return [
-                            'id' => $caballo->id,
-                            'nombre' => $caballo->nombre,
-                        ];
-                    }),
-                ];
-            }),
-        ];
-
-        return response()->json($data);
+    if (!$id) {
+        return response()->json(['error' => 'ID requerido'], 400);
     }
+
+    $prode = ProdeCaballo::find($id);
+
+    if (!$prode) {
+        return response()->json(['error' => 'Prode no encontrado'], 404);
+    }
+
+    // Agrupa TODOS los formularios por monto (incluyendo 0.00)
+    $resumenMontos = Formulario::where('prode_caballo_id', $prode->id)
+        ->select('preciopagado', DB::raw('COUNT(*) as cantidad'))
+        ->groupBy('preciopagado')
+        ->orderBy('preciopagado', 'asc')
+        ->pluck('cantidad', 'preciopagado')
+        ->toArray();
+
+    $data = [
+        'id' => $prode->id,
+        'nombre' => $prode->nombre,
+        'tipo' => $prode->tipo,
+        'precio' => $prode->precio,
+        'premio' => $prode->premio,
+        'fechafin' => $prode->fechafin,
+        'foto_url' => $prode->foto ? asset('img/' . $prode->foto) : null,
+        'reglas' => $prode->reglas,
+        'configuracion' => $prode->configuraciones->first(),
+        'carreras' => $prode->carreras->map(function($carrera) {
+            $pivot = $carrera->pivot ?? null;
+            return [
+                'id' => $carrera->id,
+                'nombre' => $carrera->nombre,
+                'hipico' => $carrera->hipico,
+                'obligatoria' => $pivot ? (bool)$pivot->obligatoria : false,
+                'caballos' => $carrera->caballos->map(function($caballo) {
+                    return [
+                        'id' => $caballo->id,
+                        'nombre' => $caballo->nombre,
+                    ];
+                }),
+            ];
+        }),
+        'resumen_montos' => $resumenMontos,
+    ];
+ 
+    return response()->json($data);
+}
+
 
     // 2. Detalle de un solo prode (por ID) con todo incluido
     public function show(Request $request)
@@ -104,6 +116,7 @@ class FormularioController extends Controller
         $data = [
             'id' => $prode->id,
             'nombre' => $prode->nombre,
+            'tipo' => $prode->tipo,
             'precio' => $prode->precio,
             'premio' => $prode->premio,
             'fechafin' => $prode->fechafin,
@@ -113,7 +126,7 @@ class FormularioController extends Controller
                 return [
                     'id' => $carrera->id,
                     'nombre' => $carrera->nombre,
-                    'hipico' => $carrera->hipico, // <-- AGREGADO
+                    'hipico' => $carrera->hipico,
                     'obligatoria' => $pivot ? (bool)$pivot->obligatoria : false,
                     'caballos' => $carrera->caballos->map(function($caballo) {
                         return [
@@ -138,6 +151,7 @@ class FormularioController extends Controller
             'alias_admin' => 'nullable|string|in:lafijacuadrera2025,Studvecinaslindas',
             'celular' => 'required|string|max:30',
             'forma_pago' => 'required|in:Efectivo,Transferencia',
+            'preciopagado' => 'nullable|numeric',   // <-- AGREGADO
             'pronosticos' => 'required|array|min:1',
             'pronosticos.*.carrera_id' => 'required|exists:carreras,id',
             'pronosticos.*.caballo_id' => 'required|exists:caballos,id',
@@ -161,6 +175,7 @@ class FormularioController extends Controller
                 'alias_admin' => $validated['alias_admin'] ?? null,
                 'celular' => $validated['celular'],
                 'forma_pago' => $validated['forma_pago'],
+                'preciopagado' => $validated['preciopagado'] ?? null, // <-- AGREGADO
             ]);
 
             foreach ($validated['pronosticos'] as $pronostico) {

@@ -36,8 +36,14 @@
   margin: 1em 0;
 }
 
+.tabla-responsive {
+  overflow-x: auto;
+  margin-bottom: 2em;
+}
+
 .tabla-formularios {
   width: 100%;
+  min-width: 900px; /* Así nunca se “achica” de más */
   border-collapse: collapse;
   margin-top: 1em;
 }
@@ -47,6 +53,7 @@
   border: 1px solid #ccc;
   padding: 0.4em 0.6em;
   text-align: left;
+  white-space: nowrap; /* Evita saltos de línea raros en columnas muy angostas */
 }
 
 .tabla-formularios th {
@@ -83,4 +90,15 @@
 }
 .btn-wsp:hover {
   background: #128c7e;
+}
+
+/* Responsive para pantallas más chicas */
+@media (max-width: 800px) {
+  .modal-content {
+    padding: 0.7em 0.3em;
+    border-radius: 0.5em;
+  }
+  .tabla-formularios {
+    min-width: 600px;
+  }
 }

@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Prode de Caballos</title>
+    <link rel="icon" href="{{ '/' . env('IMAGES_PUBLIC_PATH') . '/favicon.jpg' }}" type="image/jpeg">
     @vite(['resources/css/app.css', 'resources/js/homeusuarios.js']) <!-- solo la entrada que corresponde a esta vista -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>

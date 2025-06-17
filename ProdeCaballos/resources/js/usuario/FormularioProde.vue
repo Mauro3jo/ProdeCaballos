@@ -7,17 +7,25 @@
         <img :src="logoUrl" alt="Logo del prode" class="prode-form-img" />
       </div>
 
-      <!-- Reglas debajo del logo -->
+      <!-- SOLO CÓMO JUGAR -->
       <div class="prode-reglas-box">
-        <h3 class="prode-reglas-title">Reglas del Prode</h3>
+        <h3 class="prode-reglas-title">Cómo Jugar</h3>
         <ol class="prode-reglas-list">
-          <li v-for="(regla, idx) in reglas" :key="idx">
-            <span class="prode-reglas-num">{{ idx + 1 }}.</span>
-            <span>{{ regla }}</span>
-          </li>
+          <li><span class="prode-reglas-num">1.</span> Elegir el ganador de 10 carreras del fin de semana disponibles en el formulario.</li>
+          <li><span class="prode-reglas-num">2.</span> Elegir 3 caballos suplentes para reemplazar algún caballo que no CORRE debido a lesiones, golpes, mal tiempo u otros inconvenientes.</li>
+          <li><span class="prode-reglas-num">3.</span> Si algún caballo seleccionado NO CORRE, se reemplaza por el suplente 1. Si hay dos, se reemplazan por suplente 1 y 2, y así sucesivamente.</li>
+          <li><span class="prode-reglas-num">4.</span> No hay restricciones sobre los ganadores: podés elegir cualquier caballo que participe.</li>
+          <li><span class="prode-reglas-num">5.</span> Una vez seleccionados tus 10 ganadores y 3 suplentes, completá el formulario con tus datos y enviá tu PRODE.</li>
+          <li><span class="prode-reglas-num">6.</span> No hay un límite de PRODES que puedas hacer: jugá y combiná cuantas veces quieras.</li>
+          <li><span class="prode-reglas-num">7.</span> Realizá el depósito correspondiente al CBU indicado.</li>
+          <li><span class="prode-reglas-num">8.</span> Se te enviará el PRODE que jugaste.</li>
+          <li><span class="prode-reglas-num">9.</span> El sábado por la mañana se enviará un archivo Excel con todos los PRODES vendidos.</li>
+          <li><span class="prode-reglas-num">10.</span> Esperá que se disputen las carreras.</li>
+          <li><span class="prode-reglas-num">11.</span> El pago a los ganadores se realizará al día siguiente de la última carrera del formulario.</li>
         </ol>
       </div>
 
+      <!-- Formulario principal -->
       <form v-if="!prodeVencido" @submit.prevent="enviarFormulario" class="form-main" novalidate>
         <!-- Carreras obligatorias agrupadas por hipico -->
         <div v-if="carrerasObligatoriasAgrupadas.length" class="form-carreras">
@@ -104,7 +112,7 @@
           </div>
         </div>
 
-        <!-- DATOS PERSONALES -->
+        <!-- Datos personales -->
         <div class="form-group">
           <input v-model="form.nombre" placeholder="Nombre y apellido" required class="input" />
         </div>
@@ -114,6 +122,28 @@
         <div class="form-group">
           <input v-model="form.celular" placeholder="Celular" required class="input" />
         </div>
+
+        <!-- SELECT DE PRECIO PAGADO SIEMPRE CON OPCIONES Y APOSTADORES -->
+        <div class="form-group">
+          <label for="preciopagado" class="mb-1 font-semibold">Precio pagado</label>
+          <select
+            id="preciopagado"
+            v-model.number="form.preciopagado"
+            required
+            class="select-carrera"
+          >
+            <option value="">Selecciona un monto</option>
+            <option
+              v-for="opcion in precioOpciones"
+              :key="opcion"
+              :value="opcion"
+            >
+              ${{ opcion.toLocaleString('es-AR') }}
+              ({{ resumenMontos[opcion.toFixed(2)] || resumenMontos[String(opcion)] || 0 }} apostadores)
+            </option>
+          </select>
+        </div>
+
         <div class="form-group">
           <select v-model="form.forma_pago" required class="select-carrera">
             <option value="">Forma de pago</option>
@@ -139,6 +169,7 @@
           Enviar pronóstico
         </button>
       </form>
+
       <div v-else class="form-error">
         Este prode ya finalizó. No podés enviar pronóstico.
         <button class="btn-form mt-3" @click="volver">Volver al home</button>
@@ -148,248 +179,19 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, computed } from "vue";
-import { useRouter } from 'vue-router';
-import './FormularioProde.css';
+import { useFormularioProde } from './FormularioProde.logic.js'
+import './FormularioProde.css'
 
-const router = useRouter();
+const props = defineProps({ id: { type: Number, required: true } })
+const emit = defineEmits(["cerrar", "guardado"])
 
-const logoUrl = import.meta.env.VITE_IMAGES_PUBLIC_PATH
-  ? `${import.meta.env.VITE_IMAGES_PUBLIC_PATH.replace(/\/$/, '')}/Logo.jpg`
-  : '/Logo.jpg';
-
-const reglasFijas = [
-  "La sentencia de cada carrera esta dada por el fallo oficial del hipico",
-  "Los clásicos que hicieron PUESTA en el prode pierden solo suman un punto",
-  "Los prodes que no están abonados no participan del prode",
-  "Se enviará al grupo un Excel con todos los prodes vendidos",
-  "Los clásicos que no se corren por razones particulares, accidentes o lluvia tienen como reemplazo un clásico suplente 1 y si este no se corre tiene un clásico suplente 2 y así sucesivamente.",
-  "Las carreras suplentes entran en juego solo si las carreras jugadas en el prode no se corren",
-  "Todos los clásicos son a las puertas.."
-];
-
-const props = defineProps({ id: { type: Number, required: true } });
-const emit = defineEmits(["cerrar", "guardado"]);
-
-const prode = ref(null);
-const loading = ref(true);
-const error = ref("");
-const serverError = ref("");
-
-const carrerasObligatorias = computed(() => prode.value?.carreras?.filter(c => c.obligatoria) || []);
-const carrerasOpcionales = computed(() => prode.value?.carreras?.filter(c => !c.obligatoria) || []);
-const cantidadOpcionalesRequeridas = computed(() => prode.value?.configuracion?.cantidad_opcionales || 0);
-const cantidadSuplentesRequeridos = computed(() => prode.value?.configuracion?.cantidad_suplentes || 0);
-
-const pronosticosObligatorias = reactive({});
-const pronosticosOpcionales = reactive({});
-const suplentes = reactive([]);
-
-const prodeVencido = computed(() => {
-  if (!prode.value?.fechafin) return false;
-  const ahora = ahoraARG();
-  return new Date(prode.value.fechafin) <= ahora;
-});
-
-// Agrupadores por hipico (nombre hipódromo)
-function agruparPorHipico(carreras) {
-  const grupos = {};
-  carreras.forEach(c => {
-    const key = c.hipico && c.hipico.trim() ? c.hipico : '';
-    if (!grupos[key]) grupos[key] = [];
-    grupos[key].push(c);
-  });
-  // Devuelve array [{ hipico, carreras }]
-  return Object.entries(grupos)
-    .sort(([a], [b]) => (a || '').localeCompare(b || '')) // ordena por nombre hipico asc
-    .map(([hipico, carreras]) => ({ hipico, carreras }));
-}
-
-// Computed agrupadas
-const carrerasObligatoriasAgrupadas = computed(() => agruparPorHipico(carrerasObligatorias.value));
-const carrerasOpcionalesAgrupadas = computed(() => agruparPorHipico(carrerasOpcionales.value));
-
-// Helpers originales
-function ahoraARG() {
-  return new Date(new Date().toLocaleString("en-US", { timeZone: "America/Argentina/Buenos_Aires" }));
-}
-function getCaballosDeCarrera(carreraId) {
-  const carrera = prode.value?.carreras?.find(c => c.id === carreraId);
-  return carrera?.caballos || [];
-}
-function onCheckObligatoria(carreraId, caballoId) {
-  pronosticosObligatorias[carreraId] =
-    pronosticosObligatorias[carreraId] === caballoId ? "" : caballoId;
-}
-function onCheckOpcional(carreraId, caballoId) {
-  pronosticosOpcionales[carreraId] =
-    pronosticosOpcionales[carreraId] === caballoId ? "" : caballoId;
-}
-function isOpcionalDisabled(carreraId, caballoId) {
-  const cantidadElegidas = Object.values(pronosticosOpcionales).filter(v => v).length;
-  return (
-    !pronosticosOpcionales[carreraId] &&
-    cantidadElegidas >= cantidadOpcionalesRequeridas.value
-  );
-}
-function onCheckSuplente(idx, caballoId) {
-  suplentes[idx].caballoId =
-    suplentes[idx].caballoId === caballoId ? "" : caballoId;
-}
-function carrerasOpcionalesNoUsadasEnSuplentes(idx) {
-  const usadasEnOpcionales = Object.keys(pronosticosOpcionales).filter(cid => pronosticosOpcionales[cid]);
-  const usadasEnSuplentes = suplentes.map((s, i) => i !== idx ? s.carreraId : null).filter(Boolean);
-  return carrerasOpcionales.value.filter(
-    c => !usadasEnOpcionales.includes(String(c.id)) && !usadasEnSuplentes.includes(c.id)
-  );
-}
-
-function parseReglasConNumeros(texto) {
-  if (!texto) return [];
-  texto = texto.replace(/^Reglas\s*/i, "");
-  let reglas = texto.split(/\d+\.\s*/).filter(x => x.trim() !== "");
-  if (reglas.length === 1 && texto.indexOf("1.") !== 0) {
-    reglas = texto.split(/\n+/).filter(x => x.trim() !== "");
-  }
-  return reglas;
-}
-
-const reglas = computed(() => {
-  if (prode.value?.reglas) {
-    return parseReglasConNumeros(prode.value.reglas);
-  }
-  return reglasFijas;
-});
-
-const form = reactive({
-  nombre: "",
-  alias: "",
-  alias_admin: "",
-  celular: "",
-  forma_pago: "",
-});
-
-const cargarProde = async (id) => {
-  loading.value = true;
-  error.value = "";
-  try {
-    const res = await fetch("/formularios/detalle", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
-      },
-      body: JSON.stringify({ id }),
-    });
-    if (!res.ok) throw new Error("No se pudo cargar el detalle del prode");
-    const data = await res.json();
-    prode.value = data;
-
-    Object.keys(pronosticosObligatorias).forEach(key => delete pronosticosObligatorias[key]);
-    carrerasObligatorias.value.forEach(c => pronosticosObligatorias[c.id] = "");
-
-    Object.keys(pronosticosOpcionales).forEach(key => delete pronosticosOpcionales[key]);
-    carrerasOpcionales.value.forEach(c => pronosticosOpcionales[c.id] = "");
-
-    suplentes.length = 0;
-    for (let i = 0; i < cantidadSuplentesRequeridos.value; i++) {
-      suplentes.push({ carreraId: "", caballoId: "" });
-    }
-
-    form.nombre = "";
-    form.alias = "";
-    form.alias_admin = "";
-    form.celular = "";
-    form.forma_pago = "";
-  } catch (e) {
-    error.value = e.message;
-  } finally {
-    loading.value = false;
-  }
-};
-
-watch(
-  () => props.id,
-  (newId) => { if (newId) cargarProde(newId); },
-  { immediate: true }
-);
-
-function volver() {
-  router.push('/');
-}
-
-function validarFormulario() {
-  if (prodeVencido.value) return false;
-  if (carrerasObligatorias.value.some(c => !pronosticosObligatorias[c.id])) return false;
-  const elegidas = Object.keys(pronosticosOpcionales).filter(cid => pronosticosOpcionales[cid]);
-  if (elegidas.length !== cantidadOpcionalesRequeridas.value) return false;
-  const suplentesIds = suplentes.map(s => s.carreraId);
-  if (
-    suplentes.length !== cantidadSuplentesRequeridos.value ||
-    suplentes.some(s => !s.carreraId || !s.caballoId) ||
-    new Set(suplentesIds).size !== suplentesIds.length
-  ) return false;
-  if (!form.nombre || !form.alias || !form.celular || !form.forma_pago) return false;
-  if (!["Efectivo", "Transferencia"].includes(form.forma_pago)) return false;
-  if (form.forma_pago === "Transferencia" && !form.alias_admin) return false;
-  return true;
-}
-
-async function enviarFormulario() {
-  serverError.value = "";
-  if (prodeVencido.value) {
-    serverError.value = "Este prode ya finalizó. No podés enviar pronóstico.";
-    return;
-  }
-  if (!validarFormulario()) {
-    serverError.value = "Completá todos los campos y pronósticos correctamente.";
-    return;
-  }
-  const pronosticos = [
-    ...carrerasObligatorias.value.map(c => ({
-      carrera_id: c.id,
-      caballo_id: pronosticosObligatorias[c.id],
-      es_suplente: false,
-    })),
-    ...carrerasOpcionales.value
-      .filter(c => pronosticosOpcionales[c.id])
-      .map(c => ({
-        carrera_id: c.id,
-        caballo_id: pronosticosOpcionales[c.id],
-        es_suplente: false,
-      })),
-    ...suplentes.map(s => ({
-      carrera_id: s.carreraId,
-      caballo_id: s.caballoId,
-      es_suplente: true,
-    })),
-  ];
-  const payload = {
-    prode_caballo_id: prode.value.id,
-    nombre: form.nombre,
-    alias: form.alias,
-    alias_admin: form.forma_pago === "Transferencia" ? form.alias_admin : null,
-    celular: form.celular,
-    forma_pago: form.forma_pago,
-    pronosticos,
-  };
-
-  try {
-    const res = await fetch("/api/guardar-formulario", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
-      },
-      body: JSON.stringify(payload),
-    });
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.error || "Error al guardar el formulario");
-    alert("¡Pronóstico enviado correctamente!");
-    await cargarProde(props.id);
-    emit("guardado");
-  } catch (e) {
-    serverError.value = e.message;
-  }
-}
+const {
+  router, logoUrl, prode, loading, error, serverError,
+  carrerasObligatorias, carrerasOpcionales, cantidadOpcionalesRequeridas,
+  cantidadSuplentesRequeridos, pronosticosObligatorias, pronosticosOpcionales,
+  suplentes, prodeVencido, carrerasObligatoriasAgrupadas, carrerasOpcionalesAgrupadas,
+  getCaballosDeCarrera, onCheckObligatoria, onCheckOpcional, isOpcionalDisabled,
+  onCheckSuplente, carrerasOpcionalesNoUsadasEnSuplentes, form,
+  precioOpciones, resumenMontos, cargarProde, volver, validarFormulario, enviarFormulario
+} = useFormularioProde(props, emit)
 </script>

@@ -13,6 +13,13 @@
         <input v-model.number="form.premio" type="number" min="0" placeholder="Premio" required class="input mb-2" />
         <input v-model="form.fechafin" type="datetime-local" placeholder="Fecha Fin" required class="input mb-2" />
 
+        <!-- Nuevo: Tipo -->
+        <select v-model="form.tipo" required class="input mb-2">
+          <option disabled value="">Tipo de Prode</option>
+          <option value="libre">Prode Libre</option>
+          <option value="puntos">Prode por Puntos</option>
+        </select>
+
         <!-- Foto (opcional) -->
         <!--
         <label class="mb-1 font-semibold">Foto (opcional)</label>
@@ -83,9 +90,8 @@
             <th>Nombre</th>
             <th>Precio</th>
             <th>Premio</th>
+            <th>Tipo</th>
             <th>Fecha Fin</th>
-            <!-- <th>Foto</th> -->
-            <!-- <th>Reglas</th> -->
             <th>Configuración (Obl / Opc / Sup)</th>
             <th>Carreras</th>
             <th>Acciones</th>
@@ -96,17 +102,12 @@
             <td>{{ prode.nombre }}</td>
             <td>{{ prode.precio }}</td>
             <td>{{ prode.premio }}</td>
+            <td>
+              <span v-if="prode.tipo === 'libre'">Libre</span>
+              <span v-else-if="prode.tipo === 'puntos'">Por Puntos</span>
+              <span v-else>-</span>
+            </td>
             <td>{{ prode.fechafin }}</td>
-            <!--
-            <td>
-              <img v-if="prode.foto_url" :src="prode.foto_url" alt="Foto" style="max-width:50px;max-height:50px;" />
-              <span v-else>-</span>
-            </td>
-            <td>
-              <span v-if="prode.reglas">{{ prode.reglas }}</span>
-              <span v-else>-</span>
-            </td>
-            -->
             <td>
               {{ prode.configuraciones?.length ? prode.configuraciones[0].cantidad_obligatorias : 0 }} /
               {{ prode.configuraciones?.length ? prode.configuraciones[0].cantidad_opcionales : 0 }} /
@@ -147,6 +148,7 @@ const form = ref({
   precio: 0,
   premio: 0,
   fechafin: '',
+  tipo: '', // <--- Nuevo campo
   reglas: '',
   configuracion: {
     cantidad_obligatorias: 0,
@@ -181,11 +183,9 @@ function cargarCarreras() {
 }
 
 function carrerasDisponibles(indexActual) {
-  // Ids seleccionados en otros selects
   const idsSeleccionados = form.value.carreras
     .map((c, idx) => idx !== indexActual ? c.id : null)
     .filter(id => !!id);
-  // Filtrá las carreras para que no se repitan
   return todasCarreras.value.filter(c => !idsSeleccionados.includes(c.id));
 }
 
@@ -207,6 +207,7 @@ function guardarProde() {
   formData.append('precio', form.value.precio);
   formData.append('premio', form.value.premio);
   formData.append('fechafin', form.value.fechafin);
+  formData.append('tipo', form.value.tipo); // <--- Nuevo campo
   // formData.append('reglas', form.value.reglas || '');
   if (fotoFile.value) {
     formData.append('foto', fotoFile.value);
@@ -246,6 +247,7 @@ function editarProde(prode) {
   form.value.precio = prode.precio;
   form.value.premio = prode.premio;
   form.value.fechafin = prode.fechafin ? prode.fechafin.slice(0, 16) : '';
+  form.value.tipo = prode.tipo || ''; // <--- Nuevo campo
   // form.value.reglas = prode.reglas || '';
 
   const config = prode.configuraciones && prode.configuraciones.length > 0
@@ -279,6 +281,7 @@ function resetForm() {
     precio: 0,
     premio: 0,
     fechafin: '',
+    tipo: '', // <--- Nuevo campo
     reglas: '',
     configuracion: {
       cantidad_obligatorias: 0,
