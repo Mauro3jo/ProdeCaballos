@@ -10,6 +10,8 @@
   --error: #ff4c4c;
 }
 
+/* ...el resto igual... */
+
 .formulario-prode-page {
   min-height: 100vh;
   background: var(--black);
@@ -64,8 +66,8 @@
   height: auto;
   object-fit: contain;
   border-radius: 0.7em;
-  background: #f1f1f1;
-  border: 1px solid #eee;
+  background: #070707;      /* Mismo fondo que la imagen */
+  border: 1px solid #222;   /* Sin marco blanco */
   box-shadow: 0 2px 14px 0 rgba(0,0,0,0.14);
 }
 /* Responsive imagen */
@@ -74,6 +76,8 @@
     max-width: 110px;
     max-height: 110px;
     border-radius: 0.5em;
+    background: #070707;   /* Igual en mobile */
+    border: 1px solid #222;
   }
   .prode-form-img-wrap {
     margin-bottom: 0.65em;
@@ -89,17 +93,16 @@
   letter-spacing: 0.04em;
 }
 
+/* ...resto igual, sin cambios... */
 .form-main {
   display: flex;
   flex-direction: column;
   gap: 1em;
 }
-
 .form-group {
   margin-bottom: 0.6em;
   width: 100%;
 }
-
 .input,
 .select-carrera {
   width: 100%;
@@ -113,16 +116,13 @@
   transition: border 0.2s;
   margin-bottom: 0.3em;
 }
-
 .input:focus,
 .select-carrera:focus {
   border: 1.5px solid var(--yellow);
 }
-
 .form-carreras {
   margin: 1.1em 0 1.1em 0;
 }
-
 .form-section-title {
   font-size: 1.13em;
   font-weight: 600;
@@ -131,7 +131,6 @@
   text-align: center;
   letter-spacing: 0.02em;
 }
-
 .label-carrera,
 .label-carrera-select {
   font-size: 1.04em;
@@ -141,7 +140,6 @@
   display: block;
   text-align: left;
 }
-
 /* Carreras (obligatorias/opcionales) → caballos en columna */
 .caballos-checkboxes-vertical {
   display: flex;
@@ -167,7 +165,6 @@
   width: 1.15em;
   height: 1.15em;
 }
-
 .tag-obligatoria {
   background: var(--yellow);
   color: var(--black);
@@ -185,7 +182,6 @@
   font-size: 0.85em;
   font-weight: 700;
 }
-
 .suplente-group {
   border-left: 2.5px solid var(--yellow);
   padding-left: 0.5em;
@@ -193,7 +189,6 @@
   background: #363636;
   margin-top: 0.7em;
 }
-
 .btn-form {
   background: var(--yellow);
   color: var(--black);
@@ -217,7 +212,6 @@
   color: var(--yellow);
   border: 1.5px solid var(--yellow);
 }
-
 .form-error {
   color: var(--error);
   background: rgba(255, 76, 76, 0.18);
@@ -227,14 +221,12 @@
   text-align: center;
   margin-bottom: 1em;
 }
-
 .form-loading {
   text-align: center;
   font-size: 1.1em;
   padding: 2em 0;
   color: var(--yellow);
 }
-
 /* Compactar más en mobile */
 @media (max-width: 700px) {
   .formulario-prode-content {
@@ -290,14 +282,13 @@
   }
 }
 .prode-reglas-box {
-  background: var(--grey-dark);  /* Ahora igual que el card principal */
+  background: var(--grey-dark);
   border-radius: 0.8em;
   margin: 0.6em 0 1.2em 0;
   padding: 1em 1em 0.7em 1.2em;
   color: var(--white);
   border: 2px solid #202226;
 }
-
 .prode-reglas-title {
   font-size: 1.09em;
   font-weight: bold;
@@ -305,21 +296,18 @@
   color: var(--yellow) !important;
   letter-spacing: 0.04em;
 }
-
 .prode-reglas-list {
   padding-left: 1.25em;
   font-size: 1em;
   color: var(--white);
   margin-bottom: 0.1em;
 }
-
 .prode-reglas-list li {
   margin-bottom: 0.35em;
   line-height: 1.5;
   display: flex;
   align-items: flex-start;
 }
-
 .prode-reglas-num {
   color: var(--yellow) !important;
   font-weight: bold;
@@ -328,7 +316,6 @@
   min-width: 1.5em;
   display: inline-block;
 }
-
 @media (max-width: 600px) {
   .prode-reglas-box {
     padding: 0.7em 0.5em 0.6em 0.7em;
