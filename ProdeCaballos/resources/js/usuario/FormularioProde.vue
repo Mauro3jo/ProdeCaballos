@@ -24,6 +24,8 @@
     <li><span class="prode-reglas-num">10.</span> Esperá que se disputen las carreras.</li>
     <li><span class="prode-reglas-num">11.</span> El Premio lo gana el que TENGA más aciertos. Las carreras que son PUESTA también SUMAN un punto.</li>
     <li><span class="prode-reglas-num">12.</span> El pago a los ganadores se realizará al día siguiente de la última carrera del formulario.</li>
+    <li><span class="prode-reglas-num">13.</span> El ganador con más aciertos se lleva el 90% de lo acumulado.</li>
+
   </ol>
   <!-- Lista para "libre" (o cualquier otro tipo) -->
   <ol v-else class="prode-reglas-list">
