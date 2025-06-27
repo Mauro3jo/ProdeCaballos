@@ -144,7 +144,7 @@ export function useFormularioProde(props, emit) {
         precioOpciones.value = [5000, 10000, 20000, 40000, 50000, 100000]
       } else {
         // Por defecto es "libre" si no viene tipo o es otro valor
-        precioOpciones.value = [1000, 5000, 10000]
+        precioOpciones.value = [5000, 10000, 20000, 40000, 50000, 100000]
       }
     } catch (e) {
       error.value = e.message
