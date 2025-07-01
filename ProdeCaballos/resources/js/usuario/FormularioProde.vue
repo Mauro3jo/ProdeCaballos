@@ -178,15 +178,16 @@
         <div class="form-group" v-if="form.forma_pago === 'Transferencia'">
           <label class="mb-2"><b>Alias admin para la transferencia</b></label>
           <div>
-            <label>
-              <input type="radio" v-model="form.alias_admin" value="lafijacuadrera2025" />
-              prode-turf1
-            </label>
-            <label style="margin-left: 1em;">
-              <input type="radio" v-model="form.alias_admin" value="Studvecinaslindas" />
-              prode-turf2
-            </label>
-          </div>
+  <label>
+    <input type="radio" v-model="form.alias_admin" value="prode-turf1" />
+    prode-turf1
+  </label>
+  <label style="margin-left: 1em;">
+    <input type="radio" v-model="form.alias_admin" value="prode-turf2" />
+    prode-turf2
+  </label>
+</div>
+
         </div>
         <div v-if="serverError" class="form-error">{{ serverError }}</div>
         <button type="submit" class="btn-form" :disabled="!validarFormulario()">
