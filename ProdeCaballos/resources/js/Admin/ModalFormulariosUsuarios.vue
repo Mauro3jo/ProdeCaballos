@@ -20,6 +20,8 @@
         <table v-if="!loading && !error && formularios.length" class="tabla-formularios">
           <thead>
             <tr>
+              <th>#</th>
+              <th>Acción</th>
               <th>Nombre</th>
               <th>Alias</th>
               <th>Alias Admin</th>
@@ -30,18 +32,27 @@
               <th v-for="carrera in carreras" :key="carrera.id">
                 {{ carrera.nombre }}
               </th>
-              <th>Acción</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="form in formularios" :key="form.id">
+            <tr v-for="(form, index) in formularios" :key="form.id">
+              <td>{{ index + 1 }}</td>
+              <td>
+                <button
+                  class="btn-wsp"
+                  @click="enviarWhatsapp(form)"
+                  title="Enviar comprobante por WhatsApp"
+                >
+                  WhatsApp
+                </button>
+              </td>
               <td>{{ form.nombre }}</td>
               <td>{{ form.alias }}</td>
               <td>{{ form.alias_admin || '-' }}</td>
               <td>{{ form.celular }}</td>
               <td>{{ form.forma_pago }}</td>
               <td>{{ form.preciopagado ? ('$' + parseInt(form.preciopagado).toLocaleString('es-AR')) : '-' }}</td>
-              <td>{{ form.created_at }}</td>
+              <td>{{ formatearFecha(form.created_at) }}</td>
               <td v-for="carrera in carreras" :key="carrera.id">
                 {{
                   (() => {
@@ -55,24 +66,12 @@
                   })()
                 }}
               </td>
-              <td>
-                <button
-                  class="btn-wsp"
-                  @click="enviarWhatsapp(form)"
-                  title="Enviar comprobante por WhatsApp"
-                >
-                  WhatsApp
-                </button>
-              </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div
-        v-if="!loading && !error && formularios.length === 0"
-        class="form-error"
-      >
+      <div v-if="!loading && !error && formularios.length === 0" class="form-error">
         No hay formularios para este prode.
       </div>
     </div>
@@ -96,6 +95,14 @@ const carreras = ref([]);
 const loading = ref(false);
 const error = ref('');
 
+function formatearFecha(fechaISO) {
+  const fecha = new Date(fechaISO);
+  const dia = String(fecha.getDate()).padStart(2, '0');
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+  const anio = fecha.getFullYear();
+  return `${dia}/${mes}/${anio}`;
+}
+
 const cargarFormularios = async (id) => {
   loading.value = true;
   error.value = '';
@@ -106,9 +113,7 @@ const cargarFormularios = async (id) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector(
-          'meta[name="csrf-token"]'
-        ).getAttribute('content'),
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
       },
       body: JSON.stringify({ prode_caballo_id: id }),
     });
@@ -123,30 +128,21 @@ const cargarFormularios = async (id) => {
   }
 };
 
-watch(
-  () => props.prodeId,
-  (id) => {
-    if (id) cargarFormularios(id);
-  },
-  { immediate: true }
-);
+watch(() => props.prodeId, (id) => {
+  if (id) cargarFormularios(id);
+}, { immediate: true });
 
 function cerrar() {
   emit('close');
 }
 
-// Dado un form y un pronóstico suplente, devuelve su nro según carrera_id asc
 function getNumeroSuplente(form, pronostico) {
   if (!pronostico.es_suplente) return null;
-  const suplentesOrdenados = form.pronosticos
-    .filter(p => p.es_suplente)
-    .sort((a, b) => a.carrera_id - b.carrera_id);
+  const suplentesOrdenados = form.pronosticos.filter(p => p.es_suplente).sort((a, b) => a.carrera_id - b.carrera_id);
   return suplentesOrdenados.findIndex(p => p.carrera_id === pronostico.carrera_id) + 1;
 }
 
-// Exportar Excel con una hoja por cada precio pagado distinto
 function exportarExcel() {
-  // 1. Agrupar por precio pagado
   const grupos = {};
   formularios.value.forEach(f => {
     const key = f.preciopagado || 'Sin dato';
@@ -165,7 +161,7 @@ function exportarExcel() {
         Celular: f.celular,
         'Forma de Pago': f.forma_pago,
         'Precio Pagado': f.preciopagado ? ('$' + parseInt(f.preciopagado).toLocaleString('es-AR')) : '-',
-        Fecha: f.created_at,
+        Fecha: formatearFecha(f.created_at),
       };
       carreras.value.forEach(carrera => {
         const p = f.pronosticos.find(pr => pr.carrera_id === carrera.id);
@@ -183,11 +179,7 @@ function exportarExcel() {
       return fila;
     });
 
-    // Si el precio es "Sin dato" la hoja se llama así, sino se pone el monto
-    const nombreHoja = precio === 'Sin dato'
-      ? 'Sin Dato'
-      : `Pagado $${parseInt(precio).toLocaleString('es-AR')}`;
-
+    const nombreHoja = precio === 'Sin dato' ? 'Sin Dato' : `Pagado $${parseInt(precio).toLocaleString('es-AR')}`;
     const ws = XLSX.utils.json_to_sheet(datos);
     XLSX.utils.book_append_sheet(wb, ws, nombreHoja);
   });
@@ -195,7 +187,6 @@ function exportarExcel() {
   XLSX.writeFile(wb, `formularios_prode_${props.prodeId}.xlsx`);
 }
 
-// PDF y WhatsApp: solo carreras con pronóstico, suplente numerado
 function enviarWhatsapp(form) {
   const doc = new jsPDF();
   let linea = 20;
@@ -211,38 +202,35 @@ function enviarWhatsapp(form) {
   doc.text(`Celular: ${form.celular}`, margenX, linea); linea += 8;
   doc.text(`Forma de Pago: ${form.forma_pago}`, margenX, linea); linea += 8;
   doc.text(`Precio Pagado: ${form.preciopagado ? ('$' + parseInt(form.preciopagado).toLocaleString('es-AR')) : '-'}`, margenX, linea); linea += 8;
-  doc.text(`Fecha: ${form.created_at}`, margenX, linea); linea += 12;
+  doc.text(`Fecha: ${formatearFecha(form.created_at)}`, margenX, linea); linea += 12;
 
   doc.text('Pronósticos:', margenX, linea); linea += 7;
 
-  carreras.value.forEach(c => {
-    const p = form.pronosticos.find(pr => pr.carrera_id === c.id);
-    if (p) {
-      let texto = p.caballo_nombre || '';
-      if (p.es_suplente) {
-        const nro = getNumeroSuplente(form, p);
-        texto += ` (Suplente ${nro})`;
-      }
-      doc.text(`- ${c.nombre}: ${texto}`, margenX + 2, linea);
-      linea += 7;
+  const pronosOrdenados = form.pronosticos.filter(p => !p.es_suplente).sort((a, b) => a.carrera_id - b.carrera_id);
+  const suplentesOrdenados = form.pronosticos.filter(p => p.es_suplente).sort((a, b) => a.carrera_id - b.carrera_id);
+
+  [...pronosOrdenados, ...suplentesOrdenados].forEach((p, idx) => {
+    let texto = `${idx + 1}: ${p.caballo_nombre || ''}`;
+    if (p.es_suplente) {
+      const nro = getNumeroSuplente(form, p);
+      texto += ` (Suplente ${nro})`;
     }
+    doc.text(texto, margenX + 2, linea);
+    linea += 7;
   });
 
   doc.save(`comprobante_prode_${props.prodeId}_${form.nombre}.pdf`);
 
-  // WhatsApp: igual, solo carreras con pronóstico
   let mensaje = `Comprobante Prode: ${props.prodeNombre}\n`;
-  mensaje += `Nombre: ${form.nombre}\nAlias: ${form.alias}\nAlias Admin: ${form.alias_admin || '-'}\nCelular: ${form.celular}\nForma de Pago: ${form.forma_pago}\nPrecio Pagado: ${form.preciopagado ? ('$' + parseInt(form.preciopagado).toLocaleString('es-AR')) : '-'}\nFecha: ${form.created_at}\n\nPronósticos:\n`;
-  carreras.value.forEach(c => {
-    const p = form.pronosticos.find(pr => pr.carrera_id === c.id);
-    if (p) {
-      let texto = p.caballo_nombre || '';
-      if (p.es_suplente) {
-        const nro = getNumeroSuplente(form, p);
-        texto += ` (Suplente ${nro})`;
-      }
-      mensaje += `- ${c.nombre}: ${texto}\n`;
+  mensaje += `Nombre: ${form.nombre}\nAlias: ${form.alias}\nAlias Admin: ${form.alias_admin || '-'}\nCelular: ${form.celular}\nForma de Pago: ${form.forma_pago}\nPrecio Pagado: ${form.preciopagado ? ('$' + parseInt(form.preciopagado).toLocaleString('es-AR')) : '-'}\nFecha: ${formatearFecha(form.created_at)}\n\nPronósticos:\n`;
+
+  [...pronosOrdenados, ...suplentesOrdenados].forEach((p, idx) => {
+    let texto = `${idx + 1}: ${p.caballo_nombre || ''}`;
+    if (p.es_suplente) {
+      const nro = getNumeroSuplente(form, p);
+      texto += ` (Suplente ${nro})`;
     }
+    mensaje += `${texto}\n`;
   });
 
   const cel = form.celular.replace(/\D/g, '');
@@ -251,7 +239,6 @@ function enviarWhatsapp(form) {
 </script>
 
 <style scoped>
-/* Scroll horizontal para la tabla */
 .tabla-responsive {
   overflow-x: auto;
   margin-bottom: 2em;
