@@ -22,7 +22,7 @@
         title="Ver formularios"
       >
         <img
-          :src="logoUrl"
+          :src="getProdeImg(prode.tipo)"
           alt="Logo del prode"
           class="prode-img"
         />
@@ -63,11 +63,14 @@ import GestionFormulariosModal from './GestionFormulariosModal.vue';
 import ModalFormulariosUsuarios from './ModalFormulariosUsuarios.vue';
 import './Home.css';
 
-// --- Manejo de logo fijo desde public ---
-const logoUrl = import.meta.env.VITE_IMAGES_PUBLIC_PATH
-  ? `${import.meta.env.VITE_IMAGES_PUBLIC_PATH.replace(/\/$/, '')}/Logo.jpg`
-  : '/Logo.jpg';
-// ----------------------------------------
+const imagesPath = (import.meta.env.VITE_IMAGES_PUBLIC_PATH || '').replace(/\/$/, '');
+
+function getProdeImg(tipo) {
+  if (tipo === 'puntos') {
+    return `${imagesPath}/ProdeXPuntos.jpg`;
+  }
+  return `${imagesPath}/ProdeLibre.jpg`;
+}
 
 const userName = ref('Administrador');
 const showCarreras = ref(false);
@@ -106,7 +109,6 @@ const cargarProdes = async () => {
     let data = await res.json();
     prodes.value = data.prodes ?? data;
 
-    // LOG para debug
     console.log("Prodes cargados:");
     prodes.value.forEach((prode, i) => {
       console.log(`Prode #${i}:`, prode);
