@@ -9,7 +9,30 @@
       <form v-if="showForm" @submit.prevent="guardarCarrera" class="mb-3">
         <input v-model="form.nombre" placeholder="Nombre" required class="input mb-2" />
         <input v-model="form.descripcion" placeholder="Descripción" class="input mb-2" />
-        <input v-model="form.hipico" placeholder="Hípico" class="input mb-2" />
+
+        <!-- Select de Hípicos -->
+        <select v-model="form.hipico" class="input mb-2" required>
+          <option disabled value="">-- Seleccioná un hípico --</option>
+          <option>Hipico Los Ralos</option>
+          <option>Hipico camping de santa rosa</option>
+          <option>Hipico Monteagudo</option>
+          <option>Hipico el Monumental Atahona</option>
+          <option>Hipico La Verde</option>
+          <option>Hipico Las Tusquita</option>
+          <option>Hipico Los Abuelos el Bobadal</option>
+          <option>Hipico la Isla del rincón</option>
+          <option>Hipico Macheta pozo hondo</option>
+          <option>Hipico la certeza</option>
+          <option>Hipodromo 27 de abril S.E</option>
+          <option>Hipico san Carlos el mojón</option>
+          <option>Hipico la pelucona el mojón</option>
+          <option>Hipico el fragueño  el mojón</option>
+          <option>Hipico la victoria el Mojón</option>
+          <option>Hipico el doradillo</option>
+          <option>Hipico el quebrachal</option>
+          <option>Hipico guardamonte</option>
+        </select>
+
         <input v-model="form.fecha" type="datetime-local" class="input mb-2" />
 
         <label class="mb-1 font-semibold">Estado</label>
