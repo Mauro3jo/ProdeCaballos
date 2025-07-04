@@ -1,5 +1,8 @@
 <template>
   <div class="modal-backdrop">
+    <!-- Botón cerrar arriba a la derecha fuera del modal -->
+    <button class="cerrar-btn" @click="$emit('close')" aria-label="Cerrar modal">×</button>
+
     <div class="modal-content">
       <h2 class="mb-4">Carreras</h2>
       <button class="btn mb-2" @click="showForm = !showForm">
@@ -48,7 +51,11 @@
 
         <label class="mb-1 font-semibold">Seleccionar Caballos:</label>
 
-        <div v-for="(caballoId, index) in form.caballos" :key="index" class="caballo-numero-row mb-2">
+        <div
+          v-for="(caballoId, index) in form.caballos"
+          :key="index"
+          class="caballo-numero-row mb-2"
+        >
           <select v-model="form.caballos[index]" class="input select-caballo" required>
             <option disabled value="">-- Selecciona caballo --</option>
             <option v-for="caballo in todosCaballos" :key="caballo.id" :value="caballo.id">
@@ -183,12 +190,7 @@ function editarCarrera(carrera) {
   form.value.hipico = carrera.hipico;
   form.value.fecha = carrera.fecha ? carrera.fecha.slice(0, 16) : '';
   form.value.estado = carrera.estado;
-
-  form.value.caballos = [];
-  carrera.caballos.forEach(c => {
-    form.value.caballos.push(c.id);
-  });
-
+  form.value.caballos = carrera.caballos.map(c => c.id);
   showForm.value = true;
 }
 
