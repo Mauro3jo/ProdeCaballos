@@ -1,5 +1,8 @@
 <template>
   <div class="modal-backdrop">
+    <!-- Botón X para cerrar el modal -->
+    <button class="cerrar-btn" @click="$emit('close')" aria-label="Cerrar modal">×</button>
+
     <div class="modal-content">
       <h2 class="mb-4">Prodes Caballos</h2>
 
@@ -13,24 +16,11 @@
         <input v-model.number="form.premio" type="number" min="0" placeholder="Premio" required class="input mb-2" />
         <input v-model="form.fechafin" type="datetime-local" placeholder="Fecha Fin" required class="input mb-2" />
 
-        <!-- Nuevo: Tipo -->
         <select v-model="form.tipo" required class="input mb-2">
           <option disabled value="">Tipo de Prode</option>
           <option value="libre">Prode Libre</option>
           <option value="puntos">Prode por Puntos</option>
         </select>
-
-        <!-- Foto (opcional) -->
-        <!--
-        <label class="mb-1 font-semibold">Foto (opcional)</label>
-        <input type="file" @change="onFotoChange" accept="image/*" class="input mb-2" />
-        -->
-
-        <!-- Reglas (opcional) -->
-        <!--
-        <label class="mb-1 font-semibold">Reglas del Prode (opcional)</label>
-        <textarea v-model="form.reglas" placeholder="Reglas..." class="input mb-2"></textarea>
-        -->
 
         <label class="mb-1 font-semibold">Configuración del Prode</label>
         <input
@@ -109,9 +99,9 @@
             </td>
             <td>{{ prode.fechafin }}</td>
             <td>
-              {{ prode.configuraciones?.length ? prode.configuraciones[0].cantidad_obligatorias : 0 }} /
-              {{ prode.configuraciones?.length ? prode.configuraciones[0].cantidad_opcionales : 0 }} /
-              {{ prode.configuraciones?.length ? prode.configuraciones[0].cantidad_suplentes : 0 }}
+              {{ prode.configuraciones?.[0]?.cantidad_obligatorias || 0 }} /
+              {{ prode.configuraciones?.[0]?.cantidad_opcionales || 0 }} /
+              {{ prode.configuraciones?.[0]?.cantidad_suplentes || 0 }}
             </td>
             <td>
               <ul>
@@ -148,7 +138,7 @@ const form = ref({
   precio: 0,
   premio: 0,
   fechafin: '',
-  tipo: '', // <--- Nuevo campo
+  tipo: '',
   reglas: '',
   configuracion: {
     cantidad_obligatorias: 0,
@@ -192,26 +182,26 @@ function carrerasDisponibles(indexActual) {
 function agregarCarrera() {
   form.value.carreras.push({ id: '', obligatoria: false });
 }
+
 function removerCarrera(index) {
   form.value.carreras.splice(index, 1);
 }
-function onFotoChange(e) {
-  fotoFile.value = e.target.files[0] || null;
-}
+
 function guardarProde() {
   const url = editId.value ? `/prode-caballos/${editId.value}` : '/prode-caballos';
-  const method = editId.value ? 'POST' : 'POST'; // Usa override _method para PUT
+  const method = editId.value ? 'POST' : 'POST'; // con _method para PUT
 
   const formData = new FormData();
   formData.append('nombre', form.value.nombre);
   formData.append('precio', form.value.precio);
   formData.append('premio', form.value.premio);
   formData.append('fechafin', form.value.fechafin);
-  formData.append('tipo', form.value.tipo); // <--- Nuevo campo
-  // formData.append('reglas', form.value.reglas || '');
+  formData.append('tipo', form.value.tipo);
+
   if (fotoFile.value) {
     formData.append('foto', fotoFile.value);
   }
+
   formData.append('configuracion[cantidad_obligatorias]', form.value.configuracion.cantidad_obligatorias);
   formData.append('configuracion[cantidad_opcionales]', form.value.configuracion.cantidad_opcionales);
   formData.append('configuracion[cantidad_suplentes]', form.value.configuracion.cantidad_suplentes);
@@ -241,18 +231,16 @@ function guardarProde() {
     })
     .catch(e => alert(e.message));
 }
+
 function editarProde(prode) {
   editId.value = prode.id;
   form.value.nombre = prode.nombre;
   form.value.precio = prode.precio;
   form.value.premio = prode.premio;
   form.value.fechafin = prode.fechafin ? prode.fechafin.slice(0, 16) : '';
-  form.value.tipo = prode.tipo || ''; // <--- Nuevo campo
-  // form.value.reglas = prode.reglas || '';
+  form.value.tipo = prode.tipo || '';
 
-  const config = prode.configuraciones && prode.configuraciones.length > 0
-    ? prode.configuraciones[0]
-    : { cantidad_obligatorias: 0, cantidad_opcionales: 0, cantidad_suplentes: 0 };
+  const config = prode.configuraciones?.[0] || { cantidad_obligatorias: 0, cantidad_opcionales: 0, cantidad_suplentes: 0 };
 
   form.value.configuracion = {
     cantidad_obligatorias: config.cantidad_obligatorias,
@@ -265,6 +253,7 @@ function editarProde(prode) {
   })) || [];
   showForm.value = true;
 }
+
 function eliminarProde(id) {
   if (confirm('¿Eliminar prode?')) {
     fetch(`/prode-caballos/${id}`, {
@@ -275,13 +264,14 @@ function eliminarProde(id) {
     }).then(() => cargarProdes());
   }
 }
+
 function resetForm() {
   form.value = {
     nombre: '',
     precio: 0,
     premio: 0,
     fechafin: '',
-    tipo: '', // <--- Nuevo campo
+    tipo: '',
     reglas: '',
     configuracion: {
       cantidad_obligatorias: 0,
@@ -292,6 +282,7 @@ function resetForm() {
   };
   fotoFile.value = null;
 }
+
 onMounted(() => {
   cargarProdes();
   cargarCarreras();
