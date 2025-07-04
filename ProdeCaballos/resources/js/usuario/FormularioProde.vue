@@ -8,46 +8,44 @@
       </div>
 
       <!-- SOLO CÓMO JUGAR -->
- <div class="prode-reglas-box">
-  <h3 class="prode-reglas-title">Cómo Jugar</h3>
-  <!-- Lista para "puntos" -->
-  <ol v-if="prode.tipo === 'puntos'" class="prode-reglas-list">
-    <li><span class="prode-reglas-num">1.</span> Elegir el ganador de 10 carreras del fin de semana disponibles en el formulario.</li>
-    <li><span class="prode-reglas-num">2.</span> Elegir 3 caballos suplentes para reemplazar algún caballo que no CORRE debido a lesiones, golpes, mal tiempo u otros inconvenientes.</li>
-    <li><span class="prode-reglas-num">3.</span> Si algún caballo seleccionado NO CORRE, se reemplaza por el suplente 1. Si hay dos, se reemplazan por suplente 1 y 2, y así sucesivamente.</li>
-    <li><span class="prode-reglas-num">4.</span> No hay restricciones sobre los ganadores: podés elegir cualquier caballo que participe.</li>
-    <li><span class="prode-reglas-num">5.</span> Una vez seleccionados tus 10 ganadores y 3 suplentes, completá el formulario con tus datos y enviá tu PRODE.</li>
-    <li><span class="prode-reglas-num">6.</span> No hay un límite de PRODES que puedas hacer: jugá y combiná cuantas veces quieras.</li>
-    <li><span class="prode-reglas-num">7.</span> Realizá el depósito correspondiente al CBU indicado.</li>
-    <li><span class="prode-reglas-num">8.</span> Se te enviará el PRODE que jugaste.</li>
-    <li><span class="prode-reglas-num">9.</span> El sábado por la mañana se enviará un archivo Excel con todos los PRODES vendidos.</li>
-    <li><span class="prode-reglas-num">10.</span> Esperá que se disputen las carreras.</li>
-    <li><span class="prode-reglas-num">11.</span> El Premio lo gana el que TENGA más aciertos. Las carreras que son PUESTA también SUMAN 0.5 puntos.</li>
-    <li><span class="prode-reglas-num">12.</span> El pago a los ganadores se realizará al día siguiente de la última carrera del formulario.</li>
-    <li><span class="prode-reglas-num">13.</span> El ganador con más aciertos se lleva el 90% de lo acumulado.</li>
-
-  </ol>
-  <!-- Lista para "libre" (o cualquier otro tipo) -->
-  <ol v-else class="prode-reglas-list">
-    <li><span class="prode-reglas-num">1.</span> Elegir el ganador de 10 carreras del fin de semana disponibles en el formulario.</li>
-    <li><span class="prode-reglas-num">2.</span> Elegir 3 caballos suplentes para reemplazar algún caballo que no CORRE debido a lesiones, golpes, mal tiempo u otros inconvenientes.</li>
-    <li><span class="prode-reglas-num">3.</span> Si algún caballo seleccionado NO CORRE, se reemplaza por el suplente 1. Si hay dos, se reemplazan por suplente 1 y 2, y así sucesivamente.</li>
-    <li><span class="prode-reglas-num">4.</span> No hay restricciones sobre los ganadores: podés elegir cualquier caballo que participe.</li>
-    <li><span class="prode-reglas-num">5.</span> Una vez seleccionados tus 10 ganadores y 3 suplentes, completá el formulario con tus datos y enviá tu PRODE.</li>
-    <li><span class="prode-reglas-num">6.</span> No hay un límite de PRODES que puedas hacer: jugá y combiná cuantas veces quieras.</li>
-    <li><span class="prode-reglas-num">7.</span> El valor del Prode es de $10.000.</li>
-    <li><span class="prode-reglas-num">8.</span> Si aciertas en 10 carreras, ganás el Prode que equivale a $1.000.000.</li>
-    <li><span class="prode-reglas-num">9.</span> Si NO aciertas a las 10 carreras, pero tenés más aciertos que otros jugadores, ganás $300.000.</li>
-    <li><span class="prode-reglas-num">10.</span> Si hay 2 o más ganadores, el premio se reparte de manera proporcional.</li>
-    <li><span class="prode-reglas-num">11.</span> Si hay 10 aciertos, el "sale o sale" de $300.000 no se entrega.</li>
-    <li><span class="prode-reglas-num">12.</span> Realizá el depósito correspondiente al CBU indicado.</li>
-    <li><span class="prode-reglas-num">13.</span> Se te enviará el PRODE que jugaste.</li>
-    <li><span class="prode-reglas-num">14.</span> El sábado por la mañana se enviará un archivo Excel con todos los PRODES vendidos.</li>
-    <li><span class="prode-reglas-num">15.</span> Esperá que se disputen las carreras.</li>
-    <li><span class="prode-reglas-num">16.</span> El pago a los ganadores se realizará al día siguiente de la última carrera del formulario.</li>
-  </ol>
-</div>
-
+      <div class="prode-reglas-box">
+        <h3 class="prode-reglas-title">Cómo Jugar</h3>
+        <!-- Lista para "puntos" -->
+        <ol v-if="prode?.tipo === 'puntos'" class="prode-reglas-list">
+          <li><span class="prode-reglas-num">1.</span> Elegir el ganador de 10 carreras del fin de semana disponibles en el formulario.</li>
+          <li><span class="prode-reglas-num">2.</span> Elegir 3 caballos suplentes para reemplazar algún caballo que no CORRE debido a lesiones, golpes, mal tiempo u otros inconvenientes.</li>
+          <li><span class="prode-reglas-num">3.</span> Si algún caballo seleccionado NO CORRE, se reemplaza por el suplente 1. Si hay dos, se reemplazan por suplente 1 y 2, y así sucesivamente.</li>
+          <li><span class="prode-reglas-num">4.</span> No hay restricciones sobre los ganadores: podés elegir cualquier caballo que participe.</li>
+          <li><span class="prode-reglas-num">5.</span> Una vez seleccionados tus 10 ganadores y 3 suplentes, completá el formulario con tus datos y enviá tu PRODE.</li>
+          <li><span class="prode-reglas-num">6.</span> No hay un límite de PRODES que puedas hacer: jugá y combiná cuantas veces quieras.</li>
+          <li><span class="prode-reglas-num">7.</span> Realizá el depósito correspondiente al CBU indicado.</li>
+          <li><span class="prode-reglas-num">8.</span> Se te enviará el PRODE que jugaste.</li>
+          <li><span class="prode-reglas-num">9.</span> El sábado por la mañana se enviará un archivo Excel con todos los PRODES vendidos.</li>
+          <li><span class="prode-reglas-num">10.</span> Esperá que se disputen las carreras.</li>
+          <li><span class="prode-reglas-num">11.</span> El Premio lo gana el que TENGA más aciertos. Las carreras que son PUESTA también SUMAN 0.5 puntos.</li>
+          <li><span class="prode-reglas-num">12.</span> El pago a los ganadores se realizará al día siguiente de la última carrera del formulario.</li>
+          <li><span class="prode-reglas-num">13.</span> El ganador con más aciertos se lleva el 90% de lo acumulado.</li>
+        </ol>
+        <!-- Lista para "libre" (o cualquier otro tipo) -->
+        <ol v-else class="prode-reglas-list">
+          <li><span class="prode-reglas-num">1.</span> Elegir el ganador de 10 carreras del fin de semana disponibles en el formulario.</li>
+          <li><span class="prode-reglas-num">2.</span> Elegir 3 caballos suplentes para reemplazar algún caballo que no CORRE debido a lesiones, golpes, mal tiempo u otros inconvenientes.</li>
+          <li><span class="prode-reglas-num">3.</span> Si algún caballo seleccionado NO CORRE, se reemplaza por el suplente 1. Si hay dos, se reemplazan por suplente 1 y 2, y así sucesivamente.</li>
+          <li><span class="prode-reglas-num">4.</span> No hay restricciones sobre los ganadores: podés elegir cualquier caballo que participe.</li>
+          <li><span class="prode-reglas-num">5.</span> Una vez seleccionados tus 10 ganadores y 3 suplentes, completá el formulario con tus datos y enviá tu PRODE.</li>
+          <li><span class="prode-reglas-num">6.</span> No hay un límite de PRODES que puedas hacer: jugá y combiná cuantas veces quieras.</li>
+          <li><span class="prode-reglas-num">7.</span> El valor del Prode es de $10.000.</li>
+          <li><span class="prode-reglas-num">8.</span> Si aciertas en 10 carreras, ganás el Prode que equivale a $1.000.000.</li>
+          <li><span class="prode-reglas-num">9.</span> Si NO aciertas a las 10 carreras, pero tenés más aciertos que otros jugadores, ganás $300.000.</li>
+          <li><span class="prode-reglas-num">10.</span> Si hay 2 o más ganadores, el premio se reparte de manera proporcional.</li>
+          <li><span class="prode-reglas-num">11.</span> Si hay 10 aciertos, el "sale o sale" de $300.000 no se entrega.</li>
+          <li><span class="prode-reglas-num">12.</span> Realizá el depósito correspondiente al CBU indicado.</li>
+          <li><span class="prode-reglas-num">13.</span> Se te enviará el PRODE que jugaste.</li>
+          <li><span class="prode-reglas-num">14.</span> El sábado por la mañana se enviará un archivo Excel con todos los PRODES vendidos.</li>
+          <li><span class="prode-reglas-num">15.</span> Esperá que se disputen las carreras.</li>
+          <li><span class="prode-reglas-num">16.</span> El pago a los ganadores se realizará al día siguiente de la última carrera del formulario.</li>
+        </ol>
+      </div>
 
       <!-- Formulario principal -->
       <form v-if="!prodeVencido" @submit.prevent="enviarFormulario" class="form-main" novalidate>
@@ -178,16 +176,15 @@
         <div class="form-group" v-if="form.forma_pago === 'Transferencia'">
           <label class="mb-2"><b>Alias admin para la transferencia</b></label>
           <div>
-  <label>
-    <input type="radio" v-model="form.alias_admin" value="prode-turf1" />
-    prode-turf1
-  </label>
-  <label style="margin-left: 1em;">
-    <input type="radio" v-model="form.alias_admin" value="prode-turf2" />
-    prode-turf2
-  </label>
-</div>
-
+            <label>
+              <input type="radio" v-model="form.alias_admin" value="prode-turf1" />
+              prode-turf1
+            </label>
+            <label style="margin-left: 1em;">
+              <input type="radio" v-model="form.alias_admin" value="prode-turf2" />
+              prode-turf2
+            </label>
+          </div>
         </div>
         <div v-if="serverError" class="form-error">{{ serverError }}</div>
         <button type="submit" class="btn-form" :disabled="!validarFormulario()">

@@ -148,7 +148,7 @@ class FormularioController extends Controller
             'prode_caballo_id' => 'required|exists:prode_caballos,id',
             'nombre' => 'required|string|max:255',
             'alias' => 'required|string|max:255',
-            'alias_admin' => 'nullable|string|in:lafijacuadrera2025,Studvecinaslindas',
+            'alias_admin' => 'nullable|string|in:prode-turf1,prode-turf2',
             'celular' => 'required|string|max:30',
             'forma_pago' => 'required|in:Efectivo,Transferencia',
             'preciopagado' => 'nullable|numeric',   // <-- AGREGADO

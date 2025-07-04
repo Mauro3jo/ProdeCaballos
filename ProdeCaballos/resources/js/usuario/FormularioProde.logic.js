@@ -110,7 +110,7 @@ export function useFormularioProde(props, emit) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+          "X-CSRF-TOKEN": document.querySelector('meta[name=\"csrf-token\"]').getAttribute("content"),
         },
         body: JSON.stringify({ id }),
       })
@@ -225,7 +225,8 @@ export function useFormularioProde(props, emit) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+          "Accept": "application/json", // <-- CLAVE PARA QUE NUNCA DEVUELVA HTML
+          "X-CSRF-TOKEN": document.querySelector('meta[name=\"csrf-token\"]').getAttribute("content"),
         },
         body: JSON.stringify(payload),
       })
