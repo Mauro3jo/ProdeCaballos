@@ -13,6 +13,30 @@
   z-index: 100;
 }
 
+/* La X queda afuera del modal y siempre visible */
+.cerrar-btn {
+  position: absolute;
+  top: 20px;
+  right: 25px;
+  background: #fff;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  font-size: 1.3em;
+  width: 32px;
+  height: 32px;
+  line-height: 26px;
+  text-align: center;
+  cursor: pointer;
+  z-index: 101;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: background 0.2s;
+}
+
+.cerrar-btn:hover {
+  background: #f8d7da;
+  color: #721c24;
+}
+
 .modal-content {
   background: white;
   padding: 2em;
@@ -82,4 +106,11 @@
 
 .mb-4 {
   margin-bottom: 1.5em;
+}
+
+.sin-resultados {
+  text-align: center;
+  margin-top: 1em;
+  color: #777;
+  font-style: italic;
 }

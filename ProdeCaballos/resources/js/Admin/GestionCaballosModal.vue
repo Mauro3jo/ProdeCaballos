@@ -1,5 +1,8 @@
 <template>
   <div class="modal-backdrop">
+    <!-- Botón cerrar en esquina superior derecha del backdrop -->
+    <button class="cerrar-btn" @click="$emit('close')" aria-label="Cerrar modal">×</button>
+
     <div class="modal-content">
       <h2 class="mb-4">Caballos</h2>
       <button class="btn mb-2" @click="showForm = !showForm">{{ showForm ? 'Cancelar' : 'Nuevo Caballo' }}</button>
@@ -10,7 +13,14 @@
         <button type="submit" class="btn">{{ editId ? 'Actualizar' : 'Guardar' }}</button>
       </form>
 
-      <table class="tabla">
+      <input
+        type="text"
+        v-model="busqueda"
+        placeholder="Buscar por nombre..."
+        class="input mb-3"
+      />
+
+      <table class="tabla" v-if="caballosFiltrados.length">
         <thead>
           <tr>
             <th>Nombre</th>
@@ -19,7 +29,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="caballo in caballos" :key="caballo.id">
+          <tr v-for="caballo in caballosFiltrados" :key="caballo.id">
             <td>{{ caballo.nombre }}</td>
             <td>{{ caballo.descripcion }}</td>
             <td>
@@ -30,18 +40,21 @@
         </tbody>
       </table>
 
+      <div v-else class="sin-resultados">No se encontraron caballos.</div>
+
       <button class="btn-secondary mt-4" @click="$emit('close')">Cerrar</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 
 const caballos = ref([]);
 const showForm = ref(false);
 const form = ref({ nombre: '', descripcion: '' });
 const editId = ref(null);
+const busqueda = ref('');
 
 function getCsrfToken() {
   return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -95,6 +108,13 @@ function eliminarCaballo(id) {
     }).then(() => cargarCaballos());
   }
 }
+
+const caballosFiltrados = computed(() => {
+  const texto = busqueda.value.toLowerCase();
+  return caballos.value.filter((c) =>
+    c.nombre.toLowerCase().includes(texto)
+  );
+});
 
 onMounted(cargarCaballos);
 </script>
