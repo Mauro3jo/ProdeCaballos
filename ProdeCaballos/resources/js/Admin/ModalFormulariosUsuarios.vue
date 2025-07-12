@@ -15,7 +15,6 @@
         Descargar Excel
       </button>
 
-      <!-- Scroll horizontal -->
       <div class="tabla-responsive">
         <table v-if="!loading && !error && formularios.length" class="tabla-formularios">
           <thead>
@@ -37,13 +36,25 @@
           <tbody>
             <tr v-for="(form, index) in formularios" :key="form.id">
               <td>{{ index + 1 }}</td>
-              <td>
-                <button
-                  class="btn-wsp"
-                  @click="enviarWhatsapp(form)"
-                  title="Enviar comprobante por WhatsApp"
-                >
-                  WhatsApp
+              <td class="acciones-td">
+                <!-- Botón WhatsApp (ícono) -->
+                <button class="btn-cel" @click="enviarWhatsapp(form)" title="Enviar comprobante por WhatsApp">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M22 16.92V21a2 2 0 0 1-2.18 2A19.72 19.72 0 0 1 3 5.18
+                      2 2 0 0 1 5 3h4.09a2 2 0 0 1 2 1.72 13 13 0 0 0 .57 2.56
+                      2 2 0 0 1-.45 2.11L9.91 11a16 16 0 0 0 5.07 5.07l1.6-1.6
+                      a2 2 0 0 1 2.11-.45 13 13 0 0 0 2.56.57 2 2 0 0 1 1.72 2z"/>
+                  </svg>
+                </button>
+                <!-- Botón Borrar formulario (ícono X en círculo) -->
+                <button class="btn-x" @click="borrarFormulario(form.id)" title="Borrar formulario y todas las apuestas">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="11" stroke="#e02424" stroke-width="2" fill="white"/>
+                    <line x1="16" y1="8" x2="8" y2="16" stroke="#e02424" stroke-width="2"/>
+                    <line x1="8" y1="8" x2="16" y2="16" stroke="#e02424" stroke-width="2"/>
+                  </svg>
                 </button>
               </td>
               <td>{{ form.nombre }}</td>
@@ -236,6 +247,31 @@ function enviarWhatsapp(form) {
   const cel = form.celular.replace(/\D/g, '');
   window.open(`https://wa.me/54${cel}?text=${encodeURIComponent(mensaje)}`, '_blank');
 }
+
+// BORRAR FORMULARIO Y TODOS SUS PRONOSTICOS
+async function borrarFormulario(formularioId) {
+  if (!confirm('¿Seguro que querés borrar todo este formulario y sus apuestas?')) return;
+  let res, data;
+  try {
+    res = await fetch('/admin/formularios/borrar', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+      },
+      body: JSON.stringify({ formulario_id: formularioId }),
+    });
+    data = await res.json();
+  } catch (e) {
+    alert('Error interno del servidor. Revisá el backend.');
+    return;
+  }
+  if (data && data.success) {
+    cargarFormularios(props.prodeId);
+  } else {
+    alert((data && data.error) || 'Error al borrar');
+  }
+}
 </script>
 
 <style scoped>
@@ -245,5 +281,32 @@ function enviarWhatsapp(form) {
 }
 .tabla-formularios {
   min-width: 900px;
+}
+.acciones-td {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+}
+.btn-cel, .btn-x {
+  background: none;
+  border: none;
+  padding: 2px 6px;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 50%;
+  transition: background 0.18s, transform 0.16s;
+}
+.btn-cel:hover {
+  background: #e4ffe9;
+  box-shadow: 0 0 0 2px #b5f0c2;
+  transform: scale(1.13);
+}
+.btn-x:hover {
+  background: #ffeaea;
+  box-shadow: 0 0 0 2px #f5b5b5;
+  transform: scale(1.13);
 }
 </style>

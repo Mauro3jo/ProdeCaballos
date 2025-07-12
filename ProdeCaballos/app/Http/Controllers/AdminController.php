@@ -80,7 +80,7 @@ class AdminController extends Controller
             })->values()
             : [];
 
-        $data = $formularios->map(function ($form) {
+        $data = $formularios->map(function ($form) { 
             return [
                 'id' => $form->id,
                 'nombre' => $form->nombre,
@@ -107,5 +107,40 @@ class AdminController extends Controller
             'formularios' => $data,
             'carreras' => $carreras,
         ]);
+        
     }
+    
+    
+   public function borrarFormulario(Request $request)
+{
+    try {
+        $id = $request->input('formulario_id');
+        if (!$id) {
+            return response()->json(['error' => 'ID requerido'], 400);
+        }
+
+        $form = \App\Models\Formulario::find($id);
+
+        if (!$form) {
+            return response()->json(['error' => 'Formulario no encontrado'], 404);
+        }
+
+        // Primero borra los pronósticos asociados a este formulario
+        \App\Models\Pronostico::where('formulario_id', $id)->delete();
+
+        // Ahora sí, borra el formulario
+        $form->delete();
+
+        return response()->json(['success' => true]);
+    } catch (\Throwable $e) {
+        \Log::error('Error al borrar formulario: ' . $e->getMessage());
+        return response()->json([
+            'error' => 'Error interno del servidor: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+
+
+
 }

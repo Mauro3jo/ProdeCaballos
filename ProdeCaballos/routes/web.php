@@ -35,6 +35,7 @@ Route::middleware('web')->group(function () {
     Route::post('/api/guardar-formulario', [FormularioController::class, 'store']);
     Route::post('/admin/prodes/listar', [AdminController::class, 'listarProdes']);
     Route::post('/admin/formularios/listar', [AdminController::class, 'listarFormulariosConDetalle']);
+Route::post('/admin/formularios/borrar', [AdminController::class, 'borrarFormulario']);
 
     // ¡ESTE SIEMPRE AL FINAL!
     Route::get('/{any}', function () {
