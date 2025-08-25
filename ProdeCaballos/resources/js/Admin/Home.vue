@@ -6,7 +6,8 @@
     <div class="actions">
       <button class="btn" @click="showCaballos = true">Cargar Caballo</button>
       <button class="btn" @click="showCarreras = true">Cargar Carrera</button>
-      <button class="btn" @click="showFormularios = true">Crear Formulario</button>
+      <!-- ✅ cambio: ahora abre la vista -->
+      <button class="btn" @click="irAGestionFormularios">Crear Formulario</button>
     </div>
 
     <h2 style="margin-top: 40px;">Prodes Disponibles</h2>
@@ -41,11 +42,14 @@
       </div>
     </div>
 
-    <!-- Modales -->
+    <!-- Modales que sí siguen siendo modales -->
     <GestionCarrerasModal v-if="showCarreras" @close="showCarreras = false" />
     <GestionCaballosModal v-if="showCaballos" @close="showCaballos = false" />
-    <GestionFormulariosModal v-if="showFormularios" @close="showFormularios = false" />
 
+    <!-- ❌ se quitó el modal de formularios -->
+    <!-- <GestionFormulariosModal v-if="showFormularios" @close="showFormularios = false" /> -->
+
+    <!-- Modal de usuarios sí se mantiene -->
     <ModalFormulariosUsuarios
       v-if="showModalFormulariosUsuarios"
       :prodeId="prodeIdSeleccionado"
@@ -56,47 +60,49 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import GestionCarrerasModal from './GestionCarrerasModal.vue';
-import GestionCaballosModal from './GestionCaballosModal.vue';
-import GestionFormulariosModal from './GestionFormulariosModal.vue';
-import ModalFormulariosUsuarios from './ModalFormulariosUsuarios.vue';
-import './Home.css';
+import { ref, onMounted } from 'vue'
+import GestionCarrerasModal from './GestionCarrerasModal.vue'
+import GestionCaballosModal from './GestionCaballosModal.vue'
+import ModalFormulariosUsuarios from './ModalFormulariosUsuarios.vue'
+import './Home.css'
 
-const imagesPath = (import.meta.env.VITE_IMAGES_PUBLIC_PATH || '').replace(/\/$/, '');
+const imagesPath = (import.meta.env.VITE_IMAGES_PUBLIC_PATH || '').replace(/\/$/, '')
 
 function getProdeImg(tipo) {
   if (tipo === 'puntos') {
-    return `${imagesPath}/ProdeXPuntos.jpg`;
+    return `${imagesPath}/ProdeXPuntos.jpg`
   }
-  return `${imagesPath}/ProdeLibre.jpg`;
+  return `${imagesPath}/ProdeLibre.jpg`
 }
 
-const userName = ref('Administrador');
-const showCarreras = ref(false);
-const showCaballos = ref(false);
-const showFormularios = ref(false);
+const userName = ref('Administrador')
+const showCarreras = ref(false)
+const showCaballos = ref(false)
 
-const prodes = ref([]);
-const loadingProdes = ref(false);
-const errorProdes = ref('');
+const prodes = ref([])
+const loadingProdes = ref(false)
+const errorProdes = ref('')
 
-const showModalFormulariosUsuarios = ref(false);
-const prodeIdSeleccionado = ref(null);
-const prodeNombreSeleccionado = ref('');
+const showModalFormulariosUsuarios = ref(false)
+const prodeIdSeleccionado = ref(null)
+const prodeNombreSeleccionado = ref('')
 
 const formatFecha = (fecha) => {
-  if (!fecha) return '';
-  const d = new Date(fecha);
+  if (!fecha) return ''
+  const d = new Date(fecha)
   return d.toLocaleString('es-AR', {
-    day: 'numeric', month: 'numeric', year: 'numeric',
-    hour: '2-digit', minute: '2-digit', second: '2-digit'
-  });
-};
+    day: 'numeric',
+    month: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+}
 
 const cargarProdes = async () => {
-  loadingProdes.value = true;
-  errorProdes.value = '';
+  loadingProdes.value = true
+  errorProdes.value = ''
   try {
     const res = await fetch('/admin/prodes/listar', {
       method: 'POST',
@@ -104,30 +110,29 @@ const cargarProdes = async () => {
         'Content-Type': 'application/json',
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
       },
-    });
-    if (!res.ok) throw new Error('No se pudo cargar los prodes');
-    let data = await res.json();
-    prodes.value = data.prodes ?? data;
-
-    console.log("Prodes cargados:");
-    prodes.value.forEach((prode, i) => {
-      console.log(`Prode #${i}:`, prode);
-    });
-
+    })
+    if (!res.ok) throw new Error('No se pudo cargar los prodes')
+    let data = await res.json()
+    prodes.value = data.prodes ?? data
   } catch (e) {
-    errorProdes.value = e.message;
+    errorProdes.value = e.message
   } finally {
-    loadingProdes.value = false;
+    loadingProdes.value = false
   }
-};
+}
 
 const abrirModalFormularios = (id, nombre) => {
-  prodeIdSeleccionado.value = id;
-  prodeNombreSeleccionado.value = nombre;
-  showModalFormulariosUsuarios.value = true;
-};
+  prodeIdSeleccionado.value = id
+  prodeNombreSeleccionado.value = nombre
+  showModalFormulariosUsuarios.value = true
+}
+
+// ✅ redirige a la vista GestionFormulariosModal.blade.php
+function irAGestionFormularios() {
+  window.location.href = '/GestionFormulariosModal'
+}
 
 onMounted(() => {
-  cargarProdes();
-});
+  cargarProdes()
+})
 </script>

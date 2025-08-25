@@ -12,6 +12,8 @@ Route::middleware('web')->group(function () {
     Route::get('/', function () {
         return view('welcome');
     });
+// Vista de gestión de formularios
+Route::get('/GestionFormulariosModal', [AdminController::class, 'gestionFormulariosPage']);
 
     // LOGIN FORM
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login.form');

@@ -10,6 +10,11 @@ use App\Models\Formulario;
 
 class AdminController extends Controller
 {
+    public function gestionFormulariosPage()
+{
+    return view('admin.GestionFormulariosModal');
+}
+
     public function index()
     {
         $user = Auth::user();
