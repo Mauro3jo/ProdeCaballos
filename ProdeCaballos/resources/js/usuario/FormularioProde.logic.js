@@ -11,13 +11,15 @@ export function useFormularioProde(props, emit) {
   const serverError = ref("")
 
   // Imagen según tipo, por defecto es libre
-  const logoUrl = computed(() => {
-    if (prode.value?.tipo === 'puntos') {
-      return `${imagesPath}/ProdeXPuntos.jpg`
-    }
-    // Cualquier otro caso, incluso undefined/null, es 'libre'
-    return `${imagesPath}/ProdeLibre.jpg`
-  })
+// Imagen según tipo, por defecto es libre
+const logoUrl = computed(() => {
+  if (prode.value?.tipo === 'puntos') {
+    return `${imagesPath}/ProdeXPuntos.svg`
+  }
+  // Cualquier otro caso, incluso undefined/null, es 'libre'
+  return `${imagesPath}/ProdeLibre.svg`
+})
+
 
   const carrerasObligatorias = computed(() => prode.value?.carreras?.filter(c => c.obligatoria) || [])
   const carrerasOpcionales = computed(() => prode.value?.carreras?.filter(c => !c.obligatoria) || [])

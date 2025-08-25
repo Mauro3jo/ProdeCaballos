@@ -10,8 +10,6 @@
   --error: #ff4c4c;
 }
 
-/* ...el resto igual... */
-
 .formulario-prode-page {
   min-height: 100vh;
   background: var(--black);
@@ -66,9 +64,9 @@
   height: auto;
   object-fit: contain;
   border-radius: 0.7em;
-  background: #070707;      /* Mismo fondo que la imagen */
-  border: 1px solid #222;   /* Sin marco blanco */
-  box-shadow: 0 2px 14px 0 rgba(0,0,0,0.14);
+  background: transparent;   /* ✅ sin fondo */
+  border: none;              /* ✅ sin borde */
+  box-shadow: none;          /* ✅ sin sombra */
 }
 /* Responsive imagen */
 @media (max-width: 600px) {
@@ -76,8 +74,9 @@
     max-width: 110px;
     max-height: 110px;
     border-radius: 0.5em;
-    background: #070707;   /* Igual en mobile */
-    border: 1px solid #222;
+    background: transparent; /* ✅ sin fondo en mobile */
+    border: none;
+    box-shadow: none;
   }
   .prode-form-img-wrap {
     margin-bottom: 0.65em;
@@ -93,7 +92,6 @@
   letter-spacing: 0.04em;
 }
 
-/* ...resto igual, sin cambios... */
 .form-main {
   display: flex;
   flex-direction: column;
@@ -227,6 +225,7 @@
   padding: 2em 0;
   color: var(--yellow);
 }
+
 /* Compactar más en mobile */
 @media (max-width: 700px) {
   .formulario-prode-content {
@@ -281,6 +280,7 @@
     font-size: 0.99em;
   }
 }
+
 .prode-reglas-box {
   background: var(--grey-dark);
   border-radius: 0.8em;

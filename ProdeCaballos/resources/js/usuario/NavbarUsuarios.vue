@@ -23,8 +23,8 @@ import { ref } from 'vue'
 const menuAbierto = ref(false)
 
 const logoUrl = import.meta.env.VITE_IMAGES_PUBLIC_PATH
-  ? `${import.meta.env.VITE_IMAGES_PUBLIC_PATH.replace(/\/$/, '')}/Nav.jpg`
-  : '/Nav.jpg'
+  ? `${import.meta.env.VITE_IMAGES_PUBLIC_PATH.replace(/\/$/, '')}/Nav.png`
+  : '/Nav.png'
 </script>
 
 <style scoped src="./NavbarUsuarios.css"></style>
