@@ -8,7 +8,15 @@ class CaballoCarrera extends Model
 {
     protected $table = 'caballo_carrera';
     public $timestamps = false;
-    protected $fillable = ['carrera_id', 'caballo_id', 'numero'];
+
+    protected $fillable = [
+        'carrera_id',
+        'caballo_id',
+        'numero',
+        'posicion',
+        'ganador',
+        'perdedor',
+    ];
 
     public function caballo()
     {
@@ -18,5 +26,10 @@ class CaballoCarrera extends Model
     public function carrera()
     {
         return $this->belongsTo(Carrera::class, 'carrera_id');
+    }
+
+    public function tiempos()
+    {
+        return $this->hasMany(CaballoCarreraTiempo::class, 'caballo_carrera_id');
     }
 }
