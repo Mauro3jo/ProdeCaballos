@@ -1,6 +1,6 @@
 <template>
   <div class="modal-backdrop">
-    <!-- Botón cerrar arriba a la derecha fuera del modal -->
+    <!-- Botón cerrar -->
     <button class="cerrar-btn" @click="$emit('close')" aria-label="Cerrar modal">×</button>
 
     <div class="modal-content">
@@ -39,37 +39,75 @@
         <input v-model="form.fecha" type="datetime-local" class="input mb-2" />
 
         <label class="mb-1 font-semibold">Estado</label>
-        <input
-          v-model="form.estado"
-          class="input mb-2"
-          :disabled="!editId"
-          readonly="!editId"
-        />
+        <input v-model="form.estado" class="input mb-2" :disabled="!editId" readonly="!editId" />
         <small v-if="!editId" class="text-sm text-gray-500">
           Estado se fija como ACTIVA al crear
         </small>
 
-        <label class="mb-1 font-semibold">Seleccionar Caballos:</label>
-
-        <div
-          v-for="(caballoId, index) in form.caballos"
-          :key="index"
-          class="caballo-numero-row mb-2"
-        >
-          <select v-model="form.caballos[index]" class="input select-caballo" required>
-            <option disabled value="">-- Selecciona caballo --</option>
-            <option v-for="caballo in todosCaballos" :key="caballo.id" :value="caballo.id">
-              {{ caballo.nombre }}
-            </option>
-          </select>
-          <button type="button" @click="removerCaballo(index)" class="btn-danger btn-small ml-2">X</button>
+        <!-- ✅ Caballos SOLO al crear -->
+        <div v-if="!editId">
+          <label class="mb-1 font-semibold">Seleccionar Caballos:</label>
+          <div v-for="(caballoId, index) in form.caballos" :key="index" class="caballo-numero-row mb-2">
+            <select v-model="form.caballos[index]" class="input select-caballo" required>
+              <option disabled value="">-- Selecciona caballo --</option>
+              <option v-for="caballo in todosCaballos" :key="caballo.id" :value="caballo.id">
+                {{ caballo.nombre }}
+              </option>
+            </select>
+            <button type="button" @click="removerCaballo(index)" class="btn-danger btn-small ml-2">X</button>
+          </div>
+          <button type="button" class="btn mb-3" @click="agregarCaballo()">Agregar Caballo</button>
         </div>
 
-        <button type="button" class="btn mb-3" @click="agregarCaballo()">Agregar Caballo</button>
+        <!-- ✅ Resultados SOLO al editar -->
+        <div v-if="editId" class="mt-4">
+          <h3 class="mb-2 font-semibold">Resultados</h3>
 
-        <button type="submit" class="btn">{{ editId ? 'Actualizar' : 'Guardar' }}</button>
+          <div
+            v-for="(res, index) in form.resultados"
+            :key="index"
+            class="resultado-row mb-3 p-3 border rounded"
+          >
+            <!-- Select caballo -->
+            <select v-model="res.caballo_id" class="input mb-2" required>
+              <option disabled value="">-- Selecciona caballo --</option>
+              <option v-for="caballo in todosCaballos" :key="caballo.id" :value="caballo.id">
+                {{ caballo.nombre }}
+              </option>
+            </select>
+
+            <!-- Posición -->
+            <input
+              v-model.number="res.posicion"
+              type="number"
+              min="1"
+              class="input mb-2"
+              placeholder="Posición"
+            />
+
+            <!-- Tiempos -->
+            <div class="mt-2">
+              <h4 class="font-medium mb-1">Tiempos parciales</h4>
+              <div v-for="(t, i) in res.tiempos" :key="i" class="flex gap-2 mb-1">
+                <input v-model.number="t.metros" type="number" placeholder="Metros" class="input" />
+                <input v-model.number="t.tiempo" type="number" step="0.01" placeholder="Tiempo (s)" class="input" />
+                <button type="button" class="btn-danger btn-small" @click="res.tiempos.splice(i,1)">X</button>
+              </div>
+              <button
+                type="button"
+                class="btn-secondary btn-small mt-1"
+                @click="res.tiempos.push({metros:'',tiempo:''})"
+              >
+                + Tiempo
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn mt-4">{{ editId ? 'Actualizar' : 'Guardar' }}</button>
       </form>
 
+      <!-- Tabla -->
       <table class="tabla">
         <thead>
           <tr>
@@ -125,6 +163,7 @@ const form = ref({
   fecha: '',
   estado: 'ACTIVA',
   caballos: [],
+  resultados: []
 });
 
 function cargarCarreras() {
@@ -145,25 +184,17 @@ function removerCaballo(index) {
 }
 
 function guardarCarrera() {
-  if (form.value.caballos.length < 2) {
+  if (!editId.value && form.value.caballos.length < 2) {
     alert('Debés asignar al menos 2 caballos');
     return;
   }
 
-  const payload = {
-    nombre: form.value.nombre,
-    descripcion: form.value.descripcion,
-    hipico: form.value.hipico,
-    fecha: form.value.fecha,
-    estado: form.value.estado,
-    caballos: form.value.caballos,
-  };
+  const payload = { ...form.value };
 
-  const url = editId.value ? `/carreras/${editId.value}` : '/carreras';
-  const method = editId.value ? 'PUT' : 'POST';
+  let url = editId.value ? `/carreras/actualizar/${editId.value}` : '/carreras';
 
   fetch(url, {
-    method,
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -175,6 +206,7 @@ function guardarCarrera() {
       return r.json();
     })
     .then(() => {
+      alert("✅ Carrera guardada correctamente");
       cargarCarreras();
       resetForm();
       showForm.value = false;
@@ -191,6 +223,13 @@ function editarCarrera(carrera) {
   form.value.fecha = carrera.fecha ? carrera.fecha.slice(0, 16) : '';
   form.value.estado = carrera.estado;
   form.value.caballos = carrera.caballos.map(c => c.id);
+
+  form.value.resultados = carrera.caballos.map(c => ({
+    caballo_id: c.id,
+    posicion: c.pivot?.posicion || '',
+    tiempos: []
+  }));
+
   showForm.value = true;
 }
 
@@ -213,6 +252,7 @@ function resetForm() {
     fecha: '',
     estado: 'ACTIVA',
     caballos: [],
+    resultados: []
   };
 }
 
