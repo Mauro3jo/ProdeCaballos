@@ -17,6 +17,10 @@ class CaballoController extends Controller
             !empty($user->token_expiration) &&
             $user->token_expiration > Carbon::now();
     }
+public function gestionCaballosPage()
+{
+    return view('admin.GestionCaballosModal');
+}
 
     public function index()
     {
