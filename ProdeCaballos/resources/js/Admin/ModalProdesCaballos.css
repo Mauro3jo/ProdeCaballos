@@ -20,13 +20,11 @@ body {
   justify-content: space-between;
   margin-bottom: 1.5rem;
 }
-
 .page-header h1 {
   font-size: 1.6rem;
   font-weight: 700;
   color: #111827;
 }
-
 .btn-back {
   background: transparent;
   border: none;
@@ -36,9 +34,7 @@ body {
   font-weight: 600;
   transition: color 0.2s;
 }
-.btn-back:hover {
-  color: #1d4ed8;
-}
+.btn-back:hover { color: #1d4ed8; }
 
 /* ======= MODAL ======= */
 .modal-backdrop {
@@ -51,7 +47,6 @@ body {
   z-index: 9999;
   animation: fadeIn 0.25s ease;
 }
-
 .modal-content {
   background: #fff;
   padding: 2rem;
@@ -64,7 +59,6 @@ body {
   position: relative;
   animation: slideDown 0.3s ease;
 }
-
 .cerrar-btn {
   position: absolute;
   top: 1rem;
@@ -91,7 +85,6 @@ body {
   gap: 0.8rem;
   margin-bottom: 1rem;
 }
-
 .input {
   width: 100%;
   padding: 0.75rem 1rem;
@@ -157,10 +150,7 @@ body {
   justify-content: center;
   margin-top: 1.5rem;
 }
-.tabla-responsive {
-  width: 100%;
-  overflow-x: auto;
-}
+.tabla-responsive { width: 100%; overflow-x: auto; }
 .tabla {
   width: 100%;
   border-collapse: collapse;
@@ -174,15 +164,20 @@ body {
   padding: 0.9rem 1rem;
   text-align: left;
   border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
 }
 .tabla th {
   background: #f9fafb;
   font-weight: 700;
   color: #111827;
+  user-select: none;
 }
-.tabla tbody tr:nth-child(even) {
-  background: #f9fafb;
+.tabla th span {
+  font-size: 0.8rem;
+  margin-left: 5px;
+  color: #6b7280;
 }
+.tabla tbody tr:nth-child(even) { background: #f9fafb; }
 .tabla tbody tr:hover {
   background: #f3f4f6;
   transition: background 0.2s;
@@ -218,6 +213,35 @@ body {
   background: #eef2ff;
   border-color: #c7d2fe;
   color: #3730a3;
+}
+
+/* ======= BUSCADOR ======= */
+.buscador {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: flex-start;
+}
+.buscador .input {
+  max-width: 320px;
+}
+
+/* ======= PAGINACION ======= */
+.paginacion {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+.paginacion .btn-secondary {
+  min-width: 36px;
+  text-align: center;
+  padding: 0.4rem 0.8rem;
+}
+.paginacion .btn-secondary.activo {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
 }
 
 /* ======= ANIMACIONES ======= */

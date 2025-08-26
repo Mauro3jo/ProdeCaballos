@@ -8,13 +8,19 @@
 
     <!-- Acciones header -->
     <div class="acciones-header">
-      <button
-        class="btn mb-3"
-        v-if="!showForm && !editId"
-        @click="abrirCrear"
-      >
+      <button class="btn mb-3" v-if="!showForm && !editId" @click="abrirCrear">
         Nuevo Prode
       </button>
+    </div>
+
+    <!-- Buscador -->
+    <div class="buscador">
+      <input
+        v-model="search"
+        type="text"
+        placeholder="Buscar prode..."
+        class="input"
+      />
     </div>
 
     <!-- Modal Crear/Editar -->
@@ -88,9 +94,7 @@
           <button type="button" class="btn mb-3" @click="agregarCarrera()">Agregar Carrera</button>
 
           <div class="mt-4 flex-center">
-            <button type="submit" class="btn">
-              {{ editId ? 'Actualizar' : 'Guardar' }}
-            </button>
+            <button type="submit" class="btn">{{ editId ? 'Actualizar' : 'Guardar' }}</button>
             <button type="button" class="btn-secondary ml-2" @click="cancelarEdicionOCreacion">Cancelar</button>
           </div>
         </form>
@@ -103,18 +107,28 @@
         <table class="tabla">
           <thead>
             <tr>
-              <th>Nombre</th>
-              <th>Precio</th>
-              <th>Premio</th>
-              <th>Tipo</th>
-              <th>Fecha Fin</th>
+              <th @click="ordenarPor('nombre')">
+                Nombre <span v-if="sortKey==='nombre'">{{ sortOrder===1 ? '▲' : '▼' }}</span>
+              </th>
+              <th @click="ordenarPor('precio')">
+                Precio <span v-if="sortKey==='precio'">{{ sortOrder===1 ? '▲' : '▼' }}</span>
+              </th>
+              <th @click="ordenarPor('premio')">
+                Premio <span v-if="sortKey==='premio'">{{ sortOrder===1 ? '▲' : '▼' }}</span>
+              </th>
+              <th @click="ordenarPor('tipo')">
+                Tipo <span v-if="sortKey==='tipo'">{{ sortOrder===1 ? '▲' : '▼' }}</span>
+              </th>
+              <th @click="ordenarPor('fechafin')">
+                Fecha Fin <span v-if="sortKey==='fechafin'">{{ sortOrder===1 ? '▲' : '▼' }}</span>
+              </th>
               <th>Config (Obl / Opc / Sup)</th>
               <th>Carreras</th>
               <th style="min-width: 190px;">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="prode in prodes" :key="prode.id">
+            <tr v-for="prode in prodesPaginados" :key="prode.id">
               <td>{{ prode.nombre }}</td>
               <td>{{ formateaMoneda(prode.precio) }}</td>
               <td>{{ formateaMoneda(prode.premio) }}</td>
@@ -130,7 +144,6 @@
                 {{ prode.configuraciones?.[0]?.cantidad_suplentes || 0 }}
               </td>
               <td>
-                <!-- Carreras comprimidas -->
                 <div class="chips">
                   <span
                     class="chip"
@@ -155,11 +168,25 @@
         </table>
       </div>
     </div>
+
+    <!-- Paginación -->
+    <div class="paginacion">
+      <button :disabled="paginaActual===1" @click="paginaActual--" class="btn-secondary">Anterior</button>
+      <button
+        v-for="n in totalPaginas"
+        :key="n"
+        :class="['btn-secondary', {activo: paginaActual===n}]"
+        @click="paginaActual = n"
+      >
+        {{ n }}
+      </button>
+      <button :disabled="paginaActual===totalPaginas" @click="paginaActual++" class="btn-secondary">Siguiente</button>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import './ModalProdesCaballos.css'
 
@@ -169,13 +196,17 @@ function volver() {
   window.location.href = "/admin";
 }
 
-
 const prodes = ref([])
 const todasCarreras = ref([])
 const showForm = ref(false)
 const editId = ref(null)
 const fotoFile = ref(null)
 const fotoPreview = ref(null)
+const search = ref('')
+const sortKey = ref('')
+const sortOrder = ref(1)
+const paginaActual = ref(1)
+const itemsPorPagina = 10
 
 const form = ref({
   nombre: '',
@@ -192,7 +223,7 @@ const form = ref({
   carreras: [],
 })
 
-// ------ Helpers UI ------
+// Helpers UI
 function abrirCrear() {
   resetForm()
   editId.value = null
@@ -210,7 +241,7 @@ function cancelarEdicionOCreacion() {
   fotoFile.value = null
 }
 
-// ------ Data ------
+// Data
 function cargarProdes() {
   fetch('/prode-caballos', {
     headers: {
@@ -222,7 +253,6 @@ function cargarProdes() {
       prodes.value = data.prodes || data
     })
 }
-
 function cargarCarreras() {
   fetch('/carreras', {
     headers: {
@@ -235,63 +265,74 @@ function cargarCarreras() {
     })
 }
 
-function carrerasDisponibles(indexActual) {
-  const idsSeleccionados = form.value.carreras
-    .map((c, idx) => (idx !== indexActual ? c.id : null))
-    .filter(id => !!id)
-  return todasCarreras.value.filter(c => !idsSeleccionados.includes(c.id))
+// Filtrado + orden
+const prodesFiltrados = computed(() => {
+  let result = prodes.value
+  if (search.value) {
+    const q = search.value.toLowerCase()
+    result = result.filter(p =>
+      p.nombre.toLowerCase().includes(q) ||
+      (p.tipo || '').toLowerCase().includes(q)
+    )
+  }
+  if (sortKey.value) {
+    result = [...result].sort((a, b) => {
+      let valA = a[sortKey.value] ?? ''
+      let valB = b[sortKey.value] ?? ''
+      if (typeof valA === 'string') valA = valA.toLowerCase()
+      if (typeof valB === 'string') valB = valB.toLowerCase()
+      if (valA < valB) return -1 * sortOrder.value
+      if (valA > valB) return 1 * sortOrder.value
+      return 0
+    })
+  }
+  return result
+})
+
+// Paginación
+const totalPaginas = computed(() => Math.ceil(prodesFiltrados.value.length / itemsPorPagina))
+const prodesPaginados = computed(() => {
+  const start = (paginaActual.value - 1) * itemsPorPagina
+  return prodesFiltrados.value.slice(start, start + itemsPorPagina)
+})
+
+function ordenarPor(columna) {
+  if (sortKey.value === columna) {
+    sortOrder.value *= -1
+  } else {
+    sortKey.value = columna
+    sortOrder.value = 1
+  }
 }
 
+// CRUD
 function agregarCarrera() {
   form.value.carreras.push({ id: '', obligatoria: false })
 }
 function removerCarrera(index) {
   form.value.carreras.splice(index, 1)
 }
-
-function onFileChange(e) {
-  const file = e.target.files?.[0]
-  if (!file) {
-    fotoFile.value = null
-    fotoPreview.value = null
-    return
-  }
-  fotoFile.value = file
-  const reader = new FileReader()
-  reader.onload = () => (fotoPreview.value = reader.result)
-  reader.readAsDataURL(file)
-}
-
-// ------ CRUD ------
 function guardarProde() {
   const url = editId.value ? `/prode-caballos/${editId.value}` : '/prode-caballos'
   const method = 'POST'
-
   const formData = new FormData()
   formData.append('nombre', form.value.nombre)
   formData.append('precio', form.value.precio)
   formData.append('premio', form.value.premio)
   formData.append('fechafin', form.value.fechafin)
   formData.append('tipo', form.value.tipo)
-
   if (fotoFile.value) formData.append('foto', fotoFile.value)
-
   formData.append('configuracion[cantidad_obligatorias]', form.value.configuracion.cantidad_obligatorias)
   formData.append('configuracion[cantidad_opcionales]', form.value.configuracion.cantidad_opcionales)
   formData.append('configuracion[cantidad_suplentes]', form.value.configuracion.cantidad_suplentes)
-
   form.value.carreras.forEach((c, i) => {
     formData.append(`carreras[${i}][id]`, c.id)
     formData.append(`carreras[${i}][obligatoria]`, c.obligatoria ? 1 : 0)
   })
-
   if (editId.value) formData.append('_method', 'PUT')
-
   fetch(url, {
     method,
-    headers: {
-      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-    },
+    headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
     body: formData,
   })
     .then(r => {
@@ -304,7 +345,6 @@ function guardarProde() {
     })
     .catch(e => alert(e.message))
 }
-
 function editarProde(prode) {
   editId.value = prode.id
   form.value.nombre = prode.nombre
@@ -312,26 +352,22 @@ function editarProde(prode) {
   form.value.premio = prode.premio
   form.value.fechafin = prode.fechafin ? prode.fechafin.slice(0, 16) : ''
   form.value.tipo = prode.tipo || ''
-
   const config = prode.configuraciones?.[0] || {
     cantidad_obligatorias: 0,
     cantidad_opcionales: 0,
     cantidad_suplentes: 0,
   }
-
   form.value.configuracion = {
     cantidad_obligatorias: config.cantidad_obligatorias,
     cantidad_opcionales: config.cantidad_opcionales,
     cantidad_suplentes: config.cantidad_suplentes,
   }
-
   form.value.carreras =
     prode.carreras?.map(c => ({
       id: c.id,
       obligatoria: c.pivot?.obligatoria || false,
     })) || []
 }
-
 function eliminarProde(id) {
   if (!confirm('¿Eliminar prode?')) return
   fetch(`/prode-caballos/${id}`, {
@@ -342,7 +378,7 @@ function eliminarProde(id) {
   }).then(() => cargarProdes())
 }
 
-// ------ utils ------
+// Utils
 function resetForm() {
   form.value = {
     nombre: '',
@@ -370,6 +406,14 @@ function acortar(txt = '', max = 18) {
 }
 function carrerasCortas(lista = []) {
   return (lista || []).slice(0, 6)
+}
+
+// Evita carreras duplicadas
+function carrerasDisponibles(indexActual) {
+  const idsSeleccionados = form.value.carreras
+    .map((c, idx) => (idx !== indexActual ? c.id : null))
+    .filter(id => !!id)
+  return todasCarreras.value.filter(c => !idsSeleccionados.includes(c.id))
 }
 
 onMounted(() => {
