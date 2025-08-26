@@ -18,6 +18,11 @@ class CarreraController extends Controller
             !empty($user->token_expiration) &&
             $user->token_expiration > Carbon::now();
     }
+public function gestionCarrerasPage()
+{
+    return view('admin.GestionCarrerasModal');
+}
+
 
  public function index()
 {

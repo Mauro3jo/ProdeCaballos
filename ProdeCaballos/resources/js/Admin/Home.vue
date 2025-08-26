@@ -4,9 +4,9 @@
     <p>Este es tu panel de administración.</p>
 
     <div class="actions">
-      <button class="btn" @click="showCaballos = true">Cargar Caballo</button>
-      <button class="btn" @click="showCarreras = true">Cargar Carrera</button>
-      <!-- ✅ cambio: ahora abre la vista -->
+      <!-- ✅ ahora redirige a las vistas -->
+      <button class="btn" @click="irAGestionCaballos">Cargar Caballo</button>
+      <button class="btn" @click="irAGestionCarreras">Cargar Carrera</button>
       <button class="btn" @click="irAGestionFormularios">Crear Formulario</button>
     </div>
 
@@ -42,14 +42,11 @@
       </div>
     </div>
 
-    <!-- Modales que sí siguen siendo modales -->
-    <GestionCarrerasModal v-if="showCarreras" @close="showCarreras = false" />
-    <GestionCaballosModal v-if="showCaballos" @close="showCaballos = false" />
+    <!-- ❌ eliminamos modales de caballos y carreras -->
+    <!-- <GestionCarrerasModal v-if="showCarreras" @close="showCarreras = false" /> -->
+    <!-- <GestionCaballosModal v-if="showCaballos" @close="showCaballos = false" /> -->
 
-    <!-- ❌ se quitó el modal de formularios -->
-    <!-- <GestionFormulariosModal v-if="showFormularios" @close="showFormularios = false" /> -->
-
-    <!-- Modal de usuarios sí se mantiene -->
+    <!-- ✅ Modal de usuarios sí se mantiene -->
     <ModalFormulariosUsuarios
       v-if="showModalFormulariosUsuarios"
       :prodeId="prodeIdSeleccionado"
@@ -61,24 +58,18 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import GestionCarrerasModal from './GestionCarrerasModal.vue'
-import GestionCaballosModal from './GestionCaballosModal.vue'
 import ModalFormulariosUsuarios from './ModalFormulariosUsuarios.vue'
 import './Home.css'
 
 const imagesPath = (import.meta.env.VITE_IMAGES_PUBLIC_PATH || '').replace(/\/$/, '')
 
 function getProdeImg(tipo) {
-  if (tipo === 'puntos') {
-    return `${imagesPath}/ProdeXPuntos.jpg`
-  }
-  return `${imagesPath}/ProdeLibre.jpg`
+  return tipo === 'puntos'
+    ? `${imagesPath}/ProdeXPuntos.jpg`
+    : `${imagesPath}/ProdeLibre.jpg`
 }
 
 const userName = ref('Administrador')
-const showCarreras = ref(false)
-const showCaballos = ref(false)
-
 const prodes = ref([])
 const loadingProdes = ref(false)
 const errorProdes = ref('')
@@ -127,9 +118,15 @@ const abrirModalFormularios = (id, nombre) => {
   showModalFormulariosUsuarios.value = true
 }
 
-// ✅ redirige a la vista GestionFormulariosModal.blade.php
+// ✅ ahora redirige a vistas completas
 function irAGestionFormularios() {
   window.location.href = '/GestionFormulariosModal'
+}
+function irAGestionCarreras() {
+  window.location.href = '/GestionCarrerasModal'
+}
+function irAGestionCaballos() {
+  window.location.href = '/GestionCaballosModal'
 }
 
 onMounted(() => {

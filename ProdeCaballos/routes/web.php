@@ -38,6 +38,8 @@ Route::get('/GestionFormulariosModal', [AdminController::class, 'gestionFormular
     Route::post('/admin/prodes/listar', [AdminController::class, 'listarProdes']);
     Route::post('/admin/formularios/listar', [AdminController::class, 'listarFormulariosConDetalle']);
 Route::post('/admin/formularios/borrar', [AdminController::class, 'borrarFormulario']);
+Route::get('/GestionCarrerasModal', [CarreraController::class, 'gestionCarrerasPage']);
+Route::get('/GestionCaballosModal', [CaballoController::class, 'gestionCaballosPage']);
 
     // ¡ESTE SIEMPRE AL FINAL!
     Route::get('/{any}', function () {
