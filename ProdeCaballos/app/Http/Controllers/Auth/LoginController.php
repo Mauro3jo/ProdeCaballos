@@ -30,11 +30,23 @@ class LoginController extends Controller
             Auth::login($user);
             $request->session()->regenerate();
 
+            // Generar nuevo token y tiempo de expiración
             $user->api_token = Str::random(60);
             $user->token_expiration = Carbon::now()->addHour();
             $user->save();
 
-            return redirect()->intended('/admin');
+            // Redirección según tipo
+            if ($user->tipo == 1) {
+                return redirect()->intended('/admin');
+            } elseif ($user->tipo == 2) {
+                return redirect()->intended('/estadisticas');
+            } else {
+                // Si no tiene tipo definido, lo mando al login
+                Auth::logout();
+                return redirect('/login')->withErrors([
+                    'email' => 'Tipo de usuario no válido.',
+                ]);
+            }
         }
 
         return back()->withErrors([
@@ -42,21 +54,20 @@ class LoginController extends Controller
         ])->onlyInput('email');
     }
 
-   public function logout(Request $request)
-{
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
-    if ($user) {
-        $user->api_token = null;
-        $user->token_expiration = null;
-        $user->save();
+    public function logout(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if ($user) {
+            $user->api_token = null;
+            $user->token_expiration = null;
+            $user->save();
+        }
+
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/login');
     }
-
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-
-    return redirect('/login');
-}
-
 }

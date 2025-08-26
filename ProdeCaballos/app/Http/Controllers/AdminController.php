@@ -71,7 +71,7 @@ public function gestionFormulariosUsuariosPage($id, $nombre = null)
     }
 
     // Método modificado para filtrar por prode_caballo_id y traer TODO (incluye preciopagado)
-   public function listarFormulariosConDetalle(Request $request)
+public function listarFormulariosConDetalle(Request $request)
 {
     $prodeId = $request->input('prode_caballo_id');
     if (!$prodeId) {
@@ -79,20 +79,21 @@ public function gestionFormulariosUsuariosPage($id, $nombre = null)
     }
 
     $formularios = Formulario::with([
-        'pronosticos.carrera.caballos', // necesitamos caballos de la carrera
+        'pronosticos.carrera',
         'pronosticos.caballo'
     ])
         ->where('prode_caballo_id', $prodeId)
         ->orderBy('created_at', 'desc')
         ->get();
 
-    // LISTA de carreras para este prode
+    // Lista de carreras con estado
     $prode = ProdeCaballo::with(['carreras'])->find($prodeId);
     $carreras = $prode
         ? $prode->carreras->map(function ($c) {
             return [
                 'id' => $c->id,
                 'nombre' => $c->nombre,
+                'estado' => $c->estado,
             ];
         })->values()
         : [];
@@ -114,21 +115,21 @@ public function gestionFormulariosUsuariosPage($id, $nombre = null)
                 $carrera = $p->carrera;
                 $caballo = $p->caballo;
 
-                // Valores por defecto
                 $posicion = null;
-                $resultado = null; // 'ganador' | 'perdedor' | null
+                $resultado = null;
 
-                // Buscar si ya hay resultado cargado para este caballo en la carrera
                 if ($carrera && $caballo) {
-                    $pivot = $carrera->caballos()
+                    // 🔥 buscamos el registro de caballo_carrera directamente
+                    $cc = \App\Models\CaballoCarrera::where('carrera_id', $carrera->id)
                         ->where('caballo_id', $caballo->id)
                         ->first();
 
-                    if ($pivot && $pivot->pivot->posicion !== null) {
-                        $posicion = $pivot->pivot->posicion;
-                        if ($posicion == 1) {
+                    if ($cc && $carrera->estado === 'FINALIZADA') {
+                        $posicion = $cc->posicion;
+
+                        if ($cc->ganador) {
                             $resultado = 'ganador';
-                        } else {
+                        } elseif ($cc->perdedor) {
                             $resultado = 'perdedor';
                         }
                     }
@@ -141,6 +142,7 @@ public function gestionFormulariosUsuariosPage($id, $nombre = null)
                     'es_suplente' => (bool) $p->es_suplente,
                     'posicion' => $posicion,
                     'resultado' => $resultado,
+                    'estado' => $carrera->estado ?? 'ACTIVA',
                 ];
             }),
         ];
@@ -151,6 +153,8 @@ public function gestionFormulariosUsuariosPage($id, $nombre = null)
         'carreras' => $carreras,
     ]);
 }
+
+
 
     
    public function borrarFormulario(Request $request)

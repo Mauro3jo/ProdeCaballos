@@ -8,22 +8,13 @@
 
     <!-- Buscador -->
     <div class="buscador">
-      <input
-        v-model="search"
-        type="text"
-        placeholder="Buscar formulario..."
-        class="input"
-      />
+      <input v-model="search" type="text" placeholder="Buscar formulario..." class="input" />
     </div>
 
     <div v-if="loading" class="form-loading">Cargando formularios...</div>
     <div v-else-if="error" class="form-error">{{ error }}</div>
 
-    <button
-      v-if="!loading && !error && formularios.length"
-      @click="exportarExcel"
-      class="btn"
-    >
+    <button v-if="!loading && !error && formularios.length" @click="exportarExcel" class="btn">
       Descargar Excel
     </button>
 
@@ -52,9 +43,8 @@
               <th @click="ordenarPor('created_at')">
                 Fecha <span v-if="sortKey==='created_at'">{{ sortOrder===1 ? '▲' : '▼' }}</span>
               </th>
-              <th v-for="carrera in carreras" :key="carrera.id">
-                {{ carrera.nombre }}
-              </th>
+              <th v-for="carrera in carreras" :key="carrera.id">{{ carrera.nombre }}</th>
+              <th>Resultado Total</th>
             </tr>
           </thead>
           <tbody>
@@ -71,19 +61,17 @@
               <td>{{ form.forma_pago }}</td>
               <td>{{ form.preciopagado ? ('$' + parseInt(form.preciopagado).toLocaleString('es-AR')) : '-' }}</td>
               <td>{{ formatearFecha(form.created_at) }}</td>
-              <td v-for="carrera in carreras" :key="carrera.id">
+              <td v-for="carrera in carreras" :key="carrera.id"
+                  :style="getEstiloResultado(form, carrera.id)">
                 {{
                   (() => {
                     const p = form.pronosticos.find(pr => pr.carrera_id === carrera.id);
                     if (!p) return '';
-                    if (p.es_suplente) {
-                      const nro = getNumeroSuplente(form, p);
-                      return `${p.caballo_nombre || ''} (Suplente ${nro})`;
-                    }
-                    return p.caballo_nombre || '';
+                    return `${p.caballo_nombre || ''} ${p.posicion ? '(Pos ' + p.posicion + ')' : ''}`;
                   })()
                 }}
               </td>
+              <td>{{ calcularResultado(form) }}</td>
             </tr>
           </tbody>
         </table>
@@ -108,7 +96,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 import jsPDF from 'jspdf'
 import './ModalFormulariosUsuarios.css'
 
@@ -133,10 +121,18 @@ function formatearFecha(fechaISO) {
   return new Date(fechaISO).toLocaleDateString('es-AR')
 }
 
-function getNumeroSuplente(form, pronostico) {
-  if (!pronostico.es_suplente) return null
-  const suplentesOrdenados = form.pronosticos.filter(p => p.es_suplente).sort((a, b) => a.carrera_id - b.carrera_id)
-  return suplentesOrdenados.findIndex(p => p.carrera_id === pronostico.carrera_id) + 1
+// Calcula victorias según resultado
+function calcularResultado(form) {
+  return form.pronosticos.filter(p => p.resultado === 'ganador').length
+}
+
+// Pintar verde/rojo en la tabla
+function getEstiloResultado(form, carreraId) {
+  const p = form.pronosticos.find(pr => pr.carrera_id === carreraId)
+  if (!p) return {}
+  if (p.resultado === 'ganador') return { color: 'green', fontWeight: '600' }
+  if (p.resultado === 'perdedor') return { color: 'red', fontWeight: '600' }
+  return {}
 }
 
 const cargarFormularios = async () => {
@@ -201,42 +197,114 @@ function ordenarPor(columna) {
   }
 }
 
-// Exportar Excel
-function exportarExcel() {
-  const wb = XLSX.utils.book_new()
-  formulariosFiltrados.value.forEach(f => {
-    const fila = {
-      Nombre: f.nombre,
-      Alias: f.alias,
-      'Alias Admin': f.alias_admin || '-',
-      Celular: f.celular,
-      'Forma de Pago': f.forma_pago,
-      'Precio Pagado': f.preciopagado ? ('$' + parseInt(f.preciopagado).toLocaleString('es-AR')) : '-',
-      Fecha: formatearFecha(f.created_at),
-    }
-    carreras.value.forEach(carrera => {
-      const p = f.pronosticos.find(pr => pr.carrera_id === carrera.id)
-      fila[carrera.nombre] = p
-        ? (p.es_suplente ? `${p.caballo_nombre} (Suplente ${getNumeroSuplente(f, p)})` : p.caballo_nombre)
-        : ''
-    })
-    const ws = XLSX.utils.json_to_sheet([fila])
-    XLSX.utils.book_append_sheet(wb, ws, f.nombre)
+// Exportar Excel con colores
+async function exportarExcel() {
+  const workbook = new ExcelJS.Workbook()
+  const sheet = workbook.addWorksheet("Formularios")
+
+  const headers = [
+    "Nombre", "Alias", "Alias Admin", "Celular",
+    "Forma de Pago", "Precio Pagado", "Fecha",
+    ...carreras.value.map(c => c.nombre),
+    "Resultado Total"
+  ]
+  sheet.addRow(headers)
+
+  // 🔥 ordenar primero por cantidad de ganadores, luego alfabético
+  const ordenados = [...formulariosFiltrados.value].sort((a, b) => {
+    const victoriasA = a.pronosticos.filter(p => p.resultado === 'ganador').length
+    const victoriasB = b.pronosticos.filter(p => p.resultado === 'ganador').length
+    if (victoriasA !== victoriasB) return victoriasB - victoriasA
+    return a.nombre.localeCompare(b.nombre)
   })
-  XLSX.writeFile(wb, `formularios_prode_${prodeId}.xlsx`)
+
+  ordenados.forEach(f => {
+    let victorias = 0
+    const rowData = [
+      f.nombre,
+      f.alias,
+      f.alias_admin || '-',
+      f.celular,
+      f.forma_pago,
+      f.preciopagado ? ('$' + parseInt(f.preciopagado).toLocaleString('es-AR')) : '-',
+      formatearFecha(f.created_at)
+    ]
+    const row = sheet.addRow(rowData)
+
+    carreras.value.forEach((carrera, idx) => {
+      const p = f.pronosticos.find(pr => pr.carrera_id === carrera.id)
+      const cell = row.getCell(8 + idx)
+      if (p) {
+        cell.value = `${p.caballo_nombre} ${p.posicion ? '(Pos ' + p.posicion + ')' : ''}`
+        if (p.resultado === 'ganador') {
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF00FF00" } }
+          victorias++
+        } else if (p.resultado === 'perdedor') {
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFF0000" } }
+        }
+      }
+    })
+
+    row.getCell(headers.length).value = victorias
+  })
+
+  const buf = await workbook.xlsx.writeBuffer()
+  const blob = new Blob([buf])
+  const link = document.createElement("a")
+  link.href = URL.createObjectURL(blob)
+  link.download = `formularios_prode_${prodeId}.xlsx`
+  link.click()
 }
 
+// PDF + WhatsApp igual que antes
 function enviarWhatsapp(form) {
   const doc = new jsPDF()
+  let linea = 20
   doc.setFontSize(16)
-  doc.text('Comprobante de Prode Caballos', 105, 20, { align: 'center' })
+  doc.text('Comprobante de Prode Caballos', 105, linea, { align: 'center' })
   doc.setFontSize(12)
-  doc.text(`Prode: ${prodeNombre}`, 15, 35)
-  doc.text(`Nombre: ${form.nombre}`, 15, 43)
-  doc.text(`Alias: ${form.alias}`, 15, 51)
+  const margenX = 15
+  linea += 13
+  doc.text(`Prode: ${prodeNombre}`, margenX, linea); linea += 8
+  doc.text(`Nombre: ${form.nombre}`, margenX, linea); linea += 8
+  doc.text(`Alias: ${form.alias}`, margenX, linea); linea += 8
+  doc.text(`Alias Admin: ${form.alias_admin || '-'}`, margenX, linea); linea += 8
+  doc.text(`Celular: ${form.celular}`, margenX, linea); linea += 8
+  doc.text(`Forma de Pago: ${form.forma_pago}`, margenX, linea); linea += 8
+  doc.text(`Precio Pagado: ${form.preciopagado ? ('$' + parseInt(form.preciopagado).toLocaleString('es-AR')) : '-'}`, margenX, linea); linea += 8
+  doc.text(`Fecha: ${formatearFecha(form.created_at)}`, margenX, linea); linea += 12
+
+  doc.text('Pronósticos:', margenX, linea); linea += 7
+
+  const pronosOrdenados = form.pronosticos.filter(p => !p.es_suplente).sort((a, b) => a.carrera_id - b.carrera_id)
+  const suplentesOrdenados = form.pronosticos.filter(p => p.es_suplente).sort((a, b) => a.carrera_id - b.carrera_id)
+
+  ;[...pronosOrdenados, ...suplentesOrdenados].forEach((p, idx) => {
+    let texto = `${idx + 1}: ${p.caballo_nombre || ''}`
+    if (p.es_suplente) {
+      const nro = suplentesOrdenados.findIndex(s => s.carrera_id === p.carrera_id) + 1
+      texto += ` (Suplente ${nro})`
+    }
+    doc.text(texto, margenX + 2, linea)
+    linea += 7
+  })
+
   doc.save(`comprobante_prode_${prodeId}_${form.nombre}.pdf`)
+
+  let mensaje = `Comprobante Prode: ${prodeNombre}\n`
+  mensaje += `Nombre: ${form.nombre}\nAlias: ${form.alias}\nAlias Admin: ${form.alias_admin || '-'}\nCelular: ${form.celular}\nForma de Pago: ${form.forma_pago}\nPrecio Pagado: ${form.preciopagado ? ('$' + parseInt(form.preciopagado).toLocaleString('es-AR')) : '-'}\nFecha: ${formatearFecha(form.created_at)}\n\nPronósticos:\n`
+
+  ;[...pronosOrdenados, ...suplentesOrdenados].forEach((p, idx) => {
+    let texto = `${idx + 1}: ${p.caballo_nombre || ''}`
+    if (p.es_suplente) {
+      const nro = suplentesOrdenados.findIndex(s => s.carrera_id === p.carrera_id) + 1
+      texto += ` (Suplente ${nro})`
+    }
+    mensaje += `${texto}\n`
+  })
+
   const cel = form.celular.replace(/\D/g, '')
-  window.open(`https://wa.me/54${cel}?text=Comprobante%20del%20prode%20${encodeURIComponent(prodeNombre)}`, '_blank')
+  window.open(`https://wa.me/54${cel}?text=${encodeURIComponent(mensaje)}`, '_blank')
 }
 
 async function borrarFormulario(id) {
@@ -254,3 +322,4 @@ async function borrarFormulario(id) {
 
 onMounted(cargarFormularios)
 </script>
+
