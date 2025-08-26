@@ -118,7 +118,7 @@ public function actualizarPost(Request $request, $id)
         'resultados.*.tiempos.*.tiempo' => 'required_with:resultados.*.tiempos|numeric',
     ]);
 
-    // ✅ Actualizar datos básicos de la carrera
+    // ✅ Actualizar datos básicos
     $carrera->update([
         'nombre' => $data['nombre'],
         'descripcion' => $data['descripcion'] ?? null,
@@ -136,8 +136,23 @@ public function actualizarPost(Request $request, $id)
 
     // ✅ Guardar resultados si vienen
     if (!empty($data['resultados'])) {
+        // 🔎 Verifico si todos los resultados son "0"
+        $todosNulos = collect($data['resultados'])->every(function ($res) {
+            return empty($res['posicion']); // posición vacía/null
+        });
+
+        if ($todosNulos) {
+            // Carrera cancelada
+            $carrera->estado = 'CANCELADA';
+            $carrera->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => '⚠ Carrera marcada como CANCELADA',
+            ]);
+        }
+
         foreach ($data['resultados'] as $res) {
-            // Buscar o crear la relación caballo-carrera
             $cc = \App\Models\CaballoCarrera::firstOrNew([
                 'carrera_id' => $carrera->id,
                 'caballo_id' => $res['caballo_id'],
@@ -151,7 +166,7 @@ public function actualizarPost(Request $request, $id)
             $cc->perdedor = $perdedor;
             $cc->save();
 
-            // Guardar tiempos (se agregan, no se borran)
+            // Guardar tiempos
             if (!empty($res['tiempos'])) {
                 foreach ($res['tiempos'] as $t) {
                     \App\Models\CaballoCarreraTiempo::create([
@@ -164,7 +179,10 @@ public function actualizarPost(Request $request, $id)
         }
     }
 
-    return response()->json(['success' => true, 'message' => '✅ Carrera actualizada correctamente']);
+    return response()->json([
+        'success' => true,
+        'message' => '✅ Carrera actualizada correctamente',
+    ]);
 }
 
 

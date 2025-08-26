@@ -115,10 +115,11 @@
               <input
                 v-model.number="res.posicion"
                 type="number"
-                min="1"
-                class="input mb-2"
+                min="0"
+                class="input mb-1"
                 placeholder="Posición"
               />
+              <small class="text-sm text-gray-500">Si ponés 0 → carrera cancelada</small>
 
               <div class="mt-2">
                 <h4 class="font-medium mb-1">Tiempos parciales</h4>
@@ -343,7 +344,7 @@ function editarCarrera(carrera) {
   form.value.caballos = carrera.caballos.map(c => c.id)
   form.value.resultados = carrera.caballos.map(c => ({
     caballo_id: c.id,
-    posicion: c.pivot?.posicion || '',
+    posicion: c.pivot?.posicion || '', // 👉 acá NO precargamos 0
     tiempos: []
   }))
   showForm.value = true
