@@ -8,10 +8,15 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
-                'resources/js/login.js',     // ← entrada del login
-                'resources/js/admin.js',     // ← entrada del admin (si lo usás)
-                'resources/js/home.js',      // ← entrada para Home.vue si aplica
-                'resources/js/homeusuarios.js',  // ← entrada para HomeUsuarios.vue
+                'resources/js/login.js',
+                'resources/js/admin.js',
+                'resources/js/home.js',
+                'resources/js/homeusuarios.js',
+                'resources/js/HomeEstadisticas.js',
+                'resources/js/GestionCaballosModal.js',
+                'resources/js/GestionCarrerasModal.js',
+                'resources/js/GestionFormulariosModal.js',
+                'resources/js/GestionFormulariosUsuariosModal.js',
             ],
             refresh: true,
         }),
