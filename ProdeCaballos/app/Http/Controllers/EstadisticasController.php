@@ -14,6 +14,7 @@ class EstadisticasController extends Controller
             return redirect('/login');
         }
 
-        return view('estadisticas.homeestadisticas', ['user' => $user]);
+        // 👇 nombre EXACTO según tu carpeta y archivo
+        return view('Estadisticas.HomeEstadisticas', ['user' => $user]);
     }
 }

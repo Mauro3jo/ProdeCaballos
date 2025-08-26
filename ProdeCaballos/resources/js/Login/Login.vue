@@ -41,18 +41,32 @@ const handleLogin = async () => {
       password: password.value,
     })
 
-    window.location.href = response.data.redirect || '/admin'
+    // 👇 mostramos siempre la respuesta en consola
+    console.log("✅ Respuesta OK:", response.data)
 
+    if (response.data && response.data.redirect) {
+      window.location.href = response.data.redirect
+    } else {
+      error.value = 'Respuesta inesperada del servidor.'
+    }
   } catch (err) {
+    // 👇 mostramos también los errores completos
+    console.log("❌ Error:", err.response?.data)
+
     if (err.response?.status === 422) {
-      error.value = err.response.data.errors.email?.[0] ?? 'Credenciales inválidas.'
+      const errores = err.response.data.errors
+      error.value = errores
+        ? Object.values(errores).flat()[0]
+        : 'Credenciales inválidas.'
     } else {
       error.value = 'Error del servidor. Intenta de nuevo.'
     }
+  } finally {
     loading.value = false
   }
 }
 </script>
+
 
 <style scoped>
 .login-container {

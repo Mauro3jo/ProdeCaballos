@@ -6,6 +6,7 @@ use App\Http\Controllers\CaballoController;
 use App\Http\Controllers\CarreraController;
 use App\Http\Controllers\ProdeCaballoController;
 use App\Http\Controllers\FormularioController;
+use App\Http\Controllers\EstadisticasController; // ✅ agregado
 
 Route::middleware('web')->group(function () {
     // ==============================
@@ -23,7 +24,7 @@ Route::middleware('web')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     // ==============================
-    // ADMIN
+    // ADMIN (tipo = 1)
     // ==============================
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.dashboard');
     Route::get('/GestionFormulariosModal', [AdminController::class, 'gestionFormulariosPage']);
@@ -31,6 +32,11 @@ Route::middleware('web')->group(function () {
     Route::post('/admin/prodes/listar', [AdminController::class, 'listarProdes']);
     Route::post('/admin/formularios/listar', [AdminController::class, 'listarFormulariosConDetalle']);
     Route::post('/admin/formularios/borrar', [AdminController::class, 'borrarFormulario']);
+
+    // ==============================
+    // ESTADÍSTICAS (tipo = 2)
+    // ==============================
+    Route::get('/estadisticas', [EstadisticasController::class, 'index'])->name('estadisticas.dashboard');
 
     // ==============================
     // CARRERAS
