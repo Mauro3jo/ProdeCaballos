@@ -36,6 +36,49 @@
       </div>
     </div>
 
+    <!-- Modal Historial -->
+    <div v-if="showHistorial" class="modal-backdrop">
+      <div class="modal-content">
+        <button class="cerrar-btn" @click="cerrarHistorial">✕</button>
+        <h2 class="mb-3">Historial de {{ caballoSeleccionado?.nombre }}</h2>
+
+        <!-- Resumen -->
+        <div v-if="resumenHistorial" class="mb-4">
+          <p><strong>Total de carreras:</strong> {{ resumenHistorial.total_carreras }}</p>
+          <p><strong>Victorias:</strong> {{ resumenHistorial.victorias }}</p>
+          <p><strong>% Victorias:</strong> {{ resumenHistorial.porcentaje_victorias }}%</p>
+        </div>
+
+        <!-- Lista de carreras -->
+        <div class="tabla-responsive">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th>Carrera</th>
+                <th>Fecha</th>
+                <th>Posición</th>
+                <th>Tiempos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="c in historial" :key="c.carrera_id">
+                <td>{{ c.carrera_nombre }}</td>
+                <td>{{ c.fecha ?? '-' }}</td>
+                <td>{{ c.posicion ?? '-' }}</td>
+                <td>
+                  <ul>
+                    <li v-for="(t, i) in c.tiempos" :key="i">
+                      {{ t.metros }}m - {{ t.tiempo }}s
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- Tabla -->
     <div class="tabla-wrapper">
       <div class="tabla-responsive">
@@ -55,9 +98,10 @@
             <tr v-for="caballo in caballosPaginados" :key="caballo.id">
               <td>{{ caballo.nombre }}</td>
               <td>{{ caballo.descripcion }}</td>
-              <td>
+              <td class="acciones-td">
                 <button @click="editarCaballo(caballo)" class="btn-secondary">Editar</button>
                 <button @click="eliminarCaballo(caballo.id)" class="btn-danger">Eliminar</button>
+                <button @click="verHistorial(caballo)" class="btn">Historial</button>
               </td>
             </tr>
           </tbody>
@@ -68,7 +112,6 @@
     <!-- Paginación -->
     <div class="paginacion">
       <button :disabled="paginaActual===1" @click="paginaActual--" class="btn-secondary">Anterior</button>
-
       <button
         v-for="n in totalPaginas"
         :key="n"
@@ -77,7 +120,6 @@
       >
         {{ n }}
       </button>
-
       <button :disabled="paginaActual===totalPaginas" @click="paginaActual++" class="btn-secondary">Siguiente</button>
     </div>
   </div>
@@ -105,6 +147,12 @@ const form = ref({
   descripcion: ''
 })
 
+// Historial
+const showHistorial = ref(false)
+const historial = ref([])
+const resumenHistorial = ref(null)
+const caballoSeleccionado = ref(null)
+
 // Helpers
 function abrirCrear() {
   resetForm()
@@ -127,10 +175,26 @@ function cargarCaballos() {
     .then(data => caballos.value = data)
 }
 
+// Historial
+function verHistorial(caballo) {
+  caballoSeleccionado.value = caballo
+  fetch(`/caballos/${caballo.id}/historial`)
+    .then(r => r.json())
+    .then(data => {
+      historial.value = data.carreras      // 👈 carreras filtradas por back
+      resumenHistorial.value = data        // 👈 stats totales
+      showHistorial.value = true
+    })
+}
+function cerrarHistorial() {
+  showHistorial.value = false
+  historial.value = []
+  resumenHistorial.value = null
+}
+
 // Computed con búsqueda + orden
 const caballosFiltrados = computed(() => {
   let result = caballos.value
-
   if (search.value) {
     const q = search.value.toLowerCase()
     result = result.filter(c =>
@@ -138,7 +202,6 @@ const caballosFiltrados = computed(() => {
       (c.descripcion || '').toLowerCase().includes(q)
     )
   }
-
   if (sortKey.value) {
     result = [...result].sort((a, b) => {
       let valA = a[sortKey.value] ?? ''
@@ -150,7 +213,6 @@ const caballosFiltrados = computed(() => {
       return 0
     })
   }
-
   return result
 })
 

@@ -52,7 +52,7 @@ body {
   background: #fff;
   padding: 2rem;
   max-width: 95vw;
-  width: 600px;
+  width: 700px;
   max-height: 92vh;
   overflow-y: auto;
   border-radius: 12px;
@@ -103,11 +103,17 @@ body {
 /* TABLA */
 .tabla-wrapper { display: flex; justify-content: center; margin-top: 1.5rem; }
 .tabla-responsive { width: 100%; overflow-x: auto; }
-.tabla { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); }
+.tabla { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
 .tabla th, .tabla td { padding: 0.9rem 1rem; text-align: left; border-bottom: 1px solid #e5e7eb; cursor: pointer; }
 .tabla th { background: #f9fafb; font-weight: 700; color: #111827; user-select: none; }
 .tabla tbody tr:nth-child(even) { background: #f9fafb; }
 .tabla tbody tr:hover { background: #f3f4f6; transition: background 0.2s; }
+
+.acciones-td {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 
 /* PAGINACION */
 .paginacion { display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1.5rem; }
