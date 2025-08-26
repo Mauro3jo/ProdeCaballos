@@ -1,104 +1,101 @@
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+.prodes-page {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.page-header {
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 10000;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
 }
 
-.modal-content {
-  background: white;
-  padding: 1.5em 2em;
-  max-width: 90vw;
-  max-height: 90vh;
-  overflow-y: auto;
-  border-radius: 1em;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  position: relative;
+.page-header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #111827;
 }
 
-.cerrar-btn {
-  position: absolute;
-  top: 1em;
-  right: 1em;
+.btn-back {
   background: transparent;
   border: none;
-  font-size: 1.5em;
-  cursor: pointer;
-}
-
-.form-loading,
-.form-error {
-  text-align: center;
-  font-size: 1.1em;
-  margin: 1em 0;
-}
-
-.tabla-responsive {
-  overflow-x: auto;
-  margin-bottom: 2em;
-}
-
-.tabla-formularios {
-  width: 100%;
-  min-width: 900px; /* Así nunca se “achica” de más */
-  border-collapse: collapse;
-  margin-top: 1em;
-}
-
-.tabla-formularios th,
-.tabla-formularios td {
-  border: 1px solid #ccc;
-  padding: 0.4em 0.6em;
-  text-align: left;
-  white-space: nowrap; /* Evita saltos de línea raros en columnas muy angostas */
-}
-
-.tabla-formularios th {
-  background-color: #f0f0f0;
-  font-weight: 700;
-}
-
-.btn-export {
-  margin-top: 0.8em;
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  padding: 0.6em 1.2em;
-  border-radius: 0.4em;
+  color: #2563eb;
+  font-size: 1rem;
   cursor: pointer;
   font-weight: 600;
 }
+.btn-back:hover { color: #1d4ed8; }
 
-.btn-export:hover {
-  background-color: #1e40af;
+.input {
+  width: 100%;
+  padding: 0.6rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 1rem;
 }
 
-.btn-wsp {
-  background: #25d366;
-  color: #fff;
-  border: none;
-  padding: 0.45em 1em;
-  border-radius: 0.4em;
+.btn, .btn-secondary, .btn-danger {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: 700;
-  font-size: 1em;
-  transition: background 0.17s;
-  margin-top: 0.2em;
-}
-.btn-wsp:hover {
-  background: #128c7e;
+  border: none;
 }
 
-/* Responsive para pantallas más chicas */
-@media (max-width: 800px) {
-  .modal-content {
-    padding: 0.7em 0.3em;
-    border-radius: 0.5em;
-  }
-  .tabla-formularios {
-    min-width: 600px;
-  }
+.btn { background: #2563eb; color: #fff; }
+.btn:hover { background: #1d4ed8; }
+.btn-secondary { background: #f3f4f6; }
+.btn-danger { background: #dc2626; color: #fff; }
+
+.tabla-wrapper { margin-top: 1.5rem; }
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+.tabla th, .tabla td {
+  padding: 0.8rem;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  vertical-align: middle; /* ✅ fuerza alineación vertical */
+}
+.tabla th {
+  background: #f9fafb;
+  font-weight: 700;
+  cursor: pointer;
+}
+.tabla tbody tr:nth-child(even) { background: #f9fafb; }
+
+.paginacion {
+  margin-top: 1rem;
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+.paginacion .activo {
+  background: #2563eb !important;
+  color: #fff;
+}
+
+/* === FIX PARA ICONOS DE ACCIONES === */
+.acciones-td {
+  white-space: nowrap; /* que no haga salto */
+}
+
+.acciones-td button {
+  all: unset;              /* quitamos estilos */
+  cursor: pointer;
+  font-size: 1rem;         /* igual que texto */
+  line-height: 1;          /* ✅ altura exacta del texto */
+  display: inline;         /* ✅ se comporta como texto */
+  vertical-align: middle;  /* ✅ mismo eje que el texto */
+  margin: 0 4px;           /* espacio entre íconos */
+}
+
+.acciones-td button:hover {
+  color: #dc2626;          /* opcional: hover rojo */
 }

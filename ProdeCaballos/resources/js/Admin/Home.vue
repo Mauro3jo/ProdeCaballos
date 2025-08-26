@@ -18,7 +18,7 @@
         v-for="prode in prodes"
         :key="prode.id"
         class="prode-card"
-        @click="abrirModalFormularios(prode.id, prode.nombre)"
+        @click="abrirFormulariosUsuarios(prode.id, prode.nombre)"
         style="cursor:pointer"
         title="Ver formularios"
       >
@@ -41,24 +41,11 @@
         </div>
       </div>
     </div>
-
-    <!-- ❌ eliminamos modales de caballos y carreras -->
-    <!-- <GestionCarrerasModal v-if="showCarreras" @close="showCarreras = false" /> -->
-    <!-- <GestionCaballosModal v-if="showCaballos" @close="showCaballos = false" /> -->
-
-    <!-- ✅ Modal de usuarios sí se mantiene -->
-    <ModalFormulariosUsuarios
-      v-if="showModalFormulariosUsuarios"
-      :prodeId="prodeIdSeleccionado"
-      :prodeNombre="prodeNombreSeleccionado"
-      @close="showModalFormulariosUsuarios = false"
-    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import ModalFormulariosUsuarios from './ModalFormulariosUsuarios.vue'
 import './Home.css'
 
 const imagesPath = (import.meta.env.VITE_IMAGES_PUBLIC_PATH || '').replace(/\/$/, '')
@@ -73,10 +60,6 @@ const userName = ref('Administrador')
 const prodes = ref([])
 const loadingProdes = ref(false)
 const errorProdes = ref('')
-
-const showModalFormulariosUsuarios = ref(false)
-const prodeIdSeleccionado = ref(null)
-const prodeNombreSeleccionado = ref('')
 
 const formatFecha = (fecha) => {
   if (!fecha) return ''
@@ -112,13 +95,11 @@ const cargarProdes = async () => {
   }
 }
 
-const abrirModalFormularios = (id, nombre) => {
-  prodeIdSeleccionado.value = id
-  prodeNombreSeleccionado.value = nombre
-  showModalFormulariosUsuarios.value = true
+// ✅ ahora redirige a la vista completa pasando el id y nombre en la URL
+function abrirFormulariosUsuarios(id, nombre) {
+  window.location.href = `/GestionFormulariosUsuariosModal/${id}/${encodeURIComponent(nombre)}`
 }
 
-// ✅ ahora redirige a vistas completas
 function irAGestionFormularios() {
   window.location.href = '/GestionFormulariosModal'
 }

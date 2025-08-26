@@ -14,6 +14,15 @@ class AdminController extends Controller
 {
     return view('admin.GestionFormulariosModal');
 }
+public function gestionFormulariosUsuariosPage($id, $nombre = null)
+{
+    return view('admin.GestionFormulariosUsuariosModal', [
+        'prodeId' => $id,
+        'prodeNombre' => $nombre ?? 'Sin nombre'
+    ]);
+}
+
+
 
     public function index()
     {
