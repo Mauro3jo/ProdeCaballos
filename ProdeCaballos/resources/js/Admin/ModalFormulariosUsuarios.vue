@@ -67,7 +67,16 @@
                   (() => {
                     const p = form.pronosticos.find(pr => pr.carrera_id === carrera.id);
                     if (!p) return '';
-                    return `${p.caballo_nombre || ''} ${p.posicion ? '(Pos ' + p.posicion + ')' : ''}`;
+                    // === NUMERACIÓN IGUAL AL PDF ===
+                    const suplentesOrdenados = form.pronosticos
+                      .filter(x => x.es_suplente)
+                      .sort((a, b) => a.carrera_id - b.carrera_id);
+                    let texto = `${p.caballo_nombre || ''} ${p.posicion ? '(Pos ' + p.posicion + ')' : ''}`;
+                    if (p.es_suplente) {
+                      const nro = suplentesOrdenados.findIndex(s => s.carrera_id === p.carrera_id) + 1;
+                      texto += ` (Suplente ${nro})`;
+                    }
+                    return texto;
                   })()
                 }}
               </td>
@@ -197,7 +206,7 @@ function ordenarPor(columna) {
   }
 }
 
-// Exportar Excel con colores
+// Exportar Excel con colores (y numeración de suplentes IGUAL al PDF)
 async function exportarExcel() {
   const workbook = new ExcelJS.Workbook()
   const sheet = workbook.addWorksheet("Formularios")
@@ -210,7 +219,7 @@ async function exportarExcel() {
   ]
   sheet.addRow(headers)
 
-  // 🔥 ordenar primero por cantidad de ganadores, luego alfabético
+  // ordenar primero por cantidad de ganadores, luego alfabético
   const ordenados = [...formulariosFiltrados.value].sort((a, b) => {
     const victoriasA = a.pronosticos.filter(p => p.resultado === 'ganador').length
     const victoriasB = b.pronosticos.filter(p => p.resultado === 'ganador').length
@@ -231,11 +240,21 @@ async function exportarExcel() {
     ]
     const row = sheet.addRow(rowData)
 
+    // === NUMERACIÓN IGUAL AL PDF ===
+    const suplentesOrdenados = f.pronosticos
+      .filter(p => p.es_suplente)
+      .sort((a, b) => a.carrera_id - b.carrera_id)
+
     carreras.value.forEach((carrera, idx) => {
       const p = f.pronosticos.find(pr => pr.carrera_id === carrera.id)
       const cell = row.getCell(8 + idx)
       if (p) {
-        cell.value = `${p.caballo_nombre} ${p.posicion ? '(Pos ' + p.posicion + ')' : ''}`
+        let text = `${p.caballo_nombre} ${p.posicion ? '(Pos ' + p.posicion + ')' : ''}`
+        if (p.es_suplente) {
+          const nro = suplentesOrdenados.findIndex(s => s.carrera_id === p.carrera_id) + 1
+          text += ` (Suplente ${nro})`
+        }
+        cell.value = text
         if (p.resultado === 'ganador') {
           cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF00FF00" } }
           victorias++
@@ -322,4 +341,3 @@ async function borrarFormulario(id) {
 
 onMounted(cargarFormularios)
 </script>
-
