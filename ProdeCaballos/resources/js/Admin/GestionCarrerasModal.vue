@@ -58,11 +58,7 @@
 
           <input v-model="form.fecha" type="datetime-local" class="input mb-2" />
 
-          <label class="mb-1 font-semibold">Estado</label>
-          <input v-model="form.estado" class="input mb-2" :disabled="!editId" />
-          <small v-if="!editId" class="text-sm text-gray-500">
-            Estado se fija como ACTIVA al crear
-          </small>
+          <!-- (El campo Estado se quitó del formulario) -->
 
           <!-- Caballos en CREAR -->
           <div v-if="!editId">
@@ -125,13 +121,27 @@
                 <h4 class="font-medium mb-1">Tiempos parciales</h4>
                 <div v-for="(t, i) in res.tiempos" :key="i" class="flex gap-2 mb-1">
                   <input v-model.number="t.metros" type="number" placeholder="Metros" class="input" />
-                  <input v-model.number="t.tiempo" type="number" step="0.01" placeholder="Tiempo (s)" class="input" />
+                  <!-- Tiempo como TEXTO AMPLIO -->
+                  <textarea
+                    v-model="t.tiempo"
+                    class="input"
+                    rows="2"
+                    placeholder="Tiempo / detalle"
+                  ></textarea>
+                  <!-- Diferencia como TEXTO AMPLIO -->
+                  <textarea
+                    v-model="t.diferencia"
+                    class="input"
+                    rows="2"
+                    placeholder="Diferencia / comentario"
+                  ></textarea>
+
                   <button type="button" class="btn-danger btn-small" @click="res.tiempos.splice(i,1)">X</button>
                 </div>
                 <button
                   type="button"
                   class="btn-secondary btn-small mt-1"
-                  @click="res.tiempos.push({metros:'',tiempo:''})"
+                  @click="res.tiempos.push({metros:'',tiempo:'',diferencia:''})"
                 >
                   + Tiempo
                 </button>
@@ -233,7 +243,7 @@ const form = ref({
   descripcion: '',
   hipico: '',
   fecha: '',
-  estado: 'ACTIVA',
+  // estado se maneja server-side; acá no lo editamos
   caballos: [],
   resultados: []
 })
@@ -313,8 +323,10 @@ function guardarCarrera() {
     alert('Debés asignar al menos 2 caballos')
     return
   }
-  const payload = { ...form.value }
-  let url = editId.value ? `/carreras/actualizar/${editId.value}` : '/carreras'
+  // Siempre enviamos estado para cumplir validación del backend, pero no se edita en UI
+  const payload = { ...form.value, estado: 'ACTIVA' }
+
+  const url = editId.value ? `/carreras/actualizar/${editId.value}` : '/carreras'
   fetch(url, {
     method: 'POST',
     headers: {
@@ -340,11 +352,10 @@ function editarCarrera(carrera) {
   form.value.descripcion = carrera.descripcion
   form.value.hipico = carrera.hipico
   form.value.fecha = carrera.fecha ? carrera.fecha.slice(0, 16) : ''
-  form.value.estado = carrera.estado
   form.value.caballos = carrera.caballos.map(c => c.id)
   form.value.resultados = carrera.caballos.map(c => ({
     caballo_id: c.id,
-    posicion: c.pivot?.posicion || '', // 👉 acá NO precargamos 0
+    posicion: c.pivot?.posicion || '',
     tiempos: []
   }))
   showForm.value = true
@@ -367,7 +378,6 @@ function resetForm() {
     descripcion: '',
     hipico: '',
     fecha: '',
-    estado: 'ACTIVA',
     caballos: [],
     resultados: []
   }

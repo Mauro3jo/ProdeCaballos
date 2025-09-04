@@ -17,10 +17,11 @@ class CaballoController extends Controller
             !empty($user->token_expiration) &&
             $user->token_expiration > Carbon::now();
     }
-public function gestionCaballosPage()
-{
-    return view('admin.GestionCaballosModal');
-}
+
+    public function gestionCaballosPage()
+    {
+        return view('admin.GestionCaballosModal');
+    }
 
     public function index()
     {
@@ -75,50 +76,50 @@ public function gestionCaballosPage()
         $caballo->delete();
         return response()->json(['message' => 'Caballo eliminado']);
     }
-    
+
     public function historial($id)
-{
-    if (!$this->validarUsuario()) {
-        return response()->json(['message' => 'No autorizado.'], 401);
+    {
+        if (!$this->validarUsuario()) {
+            return response()->json(['message' => 'No autorizado.'], 401);
+        }
+
+        $caballo = \App\Models\Caballo::findOrFail($id);
+
+        // Carreras donde este caballo participó con posición cargada
+        $carreras = \App\Models\CaballoCarrera::with(['carrera', 'tiempos'])
+            ->where('caballo_id', $caballo->id)
+            ->whereNotNull('posicion') // Ignora carreras sin resultados
+            ->get();
+
+        $totalCarreras = $carreras->count();
+        $victorias = $carreras->where('posicion', 1)->count();
+        $porcentajeVictorias = $totalCarreras > 0
+            ? round(($victorias / $totalCarreras) * 100, 2)
+            : 0;
+
+        $detalle = $carreras->map(function ($cc) {
+            return [
+                'carrera_id'       => $cc->carrera->id,
+                'carrera_nombre'   => $cc->carrera->nombre,
+                'carrera_descripcion' => $cc->carrera->descripcion, // ← agregado
+                'fecha'            => $cc->carrera->fecha,
+                'posicion'         => $cc->posicion,
+                'tiempos' => $cc->tiempos->map(function ($t) {
+                    return [
+                        'metros'     => $t->metros,
+                        'tiempo'     => $t->tiempo,      // TEXT
+                        'diferencia' => $t->diferencia,  // ← agregado
+                    ];
+                }),
+            ];
+        });
+
+        return response()->json([
+            'caballo'              => $caballo->nombre,
+            'total_carreras'       => $totalCarreras,
+            'victorias'            => $victorias,
+            'porcentaje_victorias' => $porcentajeVictorias,
+            'carreras'             => $detalle,
+        ]);
     }
-
-    $caballo = \App\Models\Caballo::findOrFail($id);
-
-    // Traer carreras donde este caballo haya participado con posicion cargada
-    $carreras = \App\Models\CaballoCarrera::with(['carrera', 'tiempos'])
-        ->where('caballo_id', $caballo->id)
-        ->whereNotNull('posicion') // Ignora carreras sin resultados
-        ->get();
-
-    $totalCarreras = $carreras->count();
-    $victorias = $carreras->where('posicion', 1)->count();
-    $porcentajeVictorias = $totalCarreras > 0 
-        ? round(($victorias / $totalCarreras) * 100, 2) 
-        : 0;
-
-    $detalle = $carreras->map(function ($cc) {
-        return [
-            'carrera_id' => $cc->carrera->id,
-            'carrera_nombre' => $cc->carrera->nombre,
-            'fecha' => $cc->carrera->fecha,
-            'posicion' => $cc->posicion,
-            'tiempos' => $cc->tiempos->map(function ($t) {
-                return [
-                    'metros' => $t->metros,
-                    'tiempo' => $t->tiempo,
-                ];
-            }),
-        ];
-    });
-
-    return response()->json([
-        'caballo' => $caballo->nombre,
-        'total_carreras' => $totalCarreras,
-        'victorias' => $victorias,
-        'porcentaje_victorias' => $porcentajeVictorias,
-        'carreras' => $detalle,
-    ]);
-}
-
-
 }

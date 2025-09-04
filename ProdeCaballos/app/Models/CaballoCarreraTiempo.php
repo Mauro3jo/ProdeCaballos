@@ -8,11 +8,8 @@ class CaballoCarreraTiempo extends Model
 {
     protected $table = 'caballo_carrera_tiempos';
 
-    protected $fillable = [
-        'caballo_carrera_id',
-        'metros',
-        'tiempo',
-    ];
+   protected $fillable = ['caballo_carrera_id', 'metros', 'tiempo', 'diferencia'];
+
 
     public function caballoCarrera()
     {

@@ -49,7 +49,7 @@
           <p><strong>% Victorias:</strong> {{ resumenHistorial.porcentaje_victorias }}%</p>
         </div>
 
-        <!-- Lista de carreras -->
+        <!-- Tabla de historial (filas por cada tiempo) -->
         <div class="tabla-responsive">
           <table class="tabla">
             <thead>
@@ -57,21 +57,21 @@
                 <th>Carrera</th>
                 <th>Fecha</th>
                 <th>Posición</th>
-                <th>Tiempos</th>
+                <th>Diferencia</th>
+                <th>Distancia</th>
+                <th>Tiempo</th>
+                <th>Observación</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="c in historial" :key="c.carrera_id">
-                <td>{{ c.carrera_nombre }}</td>
-                <td>{{ c.fecha ?? '-' }}</td>
-                <td>{{ c.posicion ?? '-' }}</td>
-                <td>
-                  <ul>
-                    <li v-for="(t, i) in c.tiempos" :key="i">
-                      {{ t.metros }}m - {{ t.tiempo }}s
-                    </li>
-                  </ul>
-                </td>
+              <tr v-for="(f, idx) in filasHistorial" :key="idx">
+                <td>{{ f.carrera_nombre }}</td>
+                <td>{{ f.fecha ?? '-' }}</td>
+                <td>{{ f.posicion ?? '-' }}</td>
+                <td>{{ f.diferencia ?? '-' }}</td>
+                <td>{{ f.metros ?? '-' }}</td>
+                <td>{{ f.tiempo ?? '-' }}</td>
+                <td>{{ f.carrera_descripcion ?? '-' }}</td>
               </tr>
             </tbody>
           </table>
@@ -149,7 +149,7 @@ const form = ref({
 
 // Historial
 const showHistorial = ref(false)
-const historial = ref([])
+const historial = ref([])            // array de carreras con .tiempos[]
 const resumenHistorial = ref(null)
 const caballoSeleccionado = ref(null)
 
@@ -181,8 +181,8 @@ function verHistorial(caballo) {
   fetch(`/caballos/${caballo.id}/historial`)
     .then(r => r.json())
     .then(data => {
-      historial.value = data.carreras      // 👈 carreras filtradas por back
-      resumenHistorial.value = data        // 👈 stats totales
+      historial.value = data.carreras || []   // viene con carrera_descripcion y tiempos[].diferencia
+      resumenHistorial.value = data
       showHistorial.value = true
     })
 }
@@ -192,7 +192,38 @@ function cerrarHistorial() {
   resumenHistorial.value = null
 }
 
-// Computed con búsqueda + orden
+// Aplana historial en filas por cada tiempo
+const filasHistorial = computed(() => {
+  const filas = []
+  for (const c of historial.value) {
+    if (c.tiempos && c.tiempos.length > 0) {
+      for (const t of c.tiempos) {
+        filas.push({
+          carrera_nombre: c.carrera_nombre,
+          carrera_descripcion: c.carrera_descripcion, // observación
+          fecha: c.fecha,
+          posicion: c.posicion,
+          diferencia: t?.diferencia ?? null,
+          metros: t?.metros ?? null,
+          tiempo: t?.tiempo ?? null,
+        })
+      }
+    } else {
+      filas.push({
+        carrera_nombre: c.carrera_nombre,
+        carrera_descripcion: c.carrera_descripcion,
+        fecha: c.fecha,
+        posicion: c.posicion,
+        diferencia: null,
+        metros: null,
+        tiempo: null,
+      })
+    }
+  }
+  return filas
+})
+
+// Computed con búsqueda + orden (tabla principal)
 const caballosFiltrados = computed(() => {
   let result = caballos.value
   if (search.value) {
